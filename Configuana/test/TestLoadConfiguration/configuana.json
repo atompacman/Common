@@ -1,0 +1,10 @@
+{"ConfiguanaAppConfig": {
+	"AppName": "Configuana",
+	"ParamClasses": [
+			"com.atompacman.configuana.TestConfiguana$Earth"
+		],
+	"SettingsProfiles": [
+			"Test"
+		]
+	}
+}

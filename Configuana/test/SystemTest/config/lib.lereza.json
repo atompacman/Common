@@ -1,0 +1,11 @@
+{"LibConfig": {
+	"name": "Lereza",
+	"version": "1.0.0",
+	"class": "com.atompacman.lereza.api.Wizard",
+	"bin": "../Lereza/bin",
+	"profiles": [
+			"set.lereza.default.csp"
+		],
+	"default profile": "set.lereza.default.csp",
+	}
+}

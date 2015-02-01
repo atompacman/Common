@@ -1,0 +1,5 @@
+Parameters.CONSOLE_VERBOSE			= EXTRA
+Parameters.WRITE_LOG_FILE			= true
+Parameters.LOG_FILE_VERBOSE			= EXTRA
+Parameters.LOG_DIRECTORY			= log
+Parameters.APPEND_DATE_TO_LOG_FILE	= false

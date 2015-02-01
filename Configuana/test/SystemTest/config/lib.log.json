@@ -1,0 +1,11 @@
+{"LibConfig": {
+	"name": "Log",
+	"version": "1.0.0",
+	"class": "com.atompacman.atomlog.Log",
+	"bin": "../AtomLog/bin",
+	"profiles": [
+			"set.log.default.csp"
+		],
+	"default profile": "set.log.default.csp"
+	}
+}

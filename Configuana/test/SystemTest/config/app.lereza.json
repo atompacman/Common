@@ -1,0 +1,9 @@
+{"AppConfig": {
+	"name": "Lereza",
+	"version": "1.0.0",
+	"main lib": "lib.lereza.json",
+	"other lib": [
+			"lib.log.json"
+		]
+	}
+}

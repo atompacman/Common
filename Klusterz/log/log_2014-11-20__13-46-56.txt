@@ -1,0 +1,14 @@
+============================= Cartesian plan clustering application =============================
+Reading Cartesian plan description file at "data\CartesianPlanClustering\test.txt".
+Clustering Cartesian plan.
+=================================================================================================
+= = = = = = = = = = = = = = = = = = = = = =  KLUSTERZ = = = = = = = = = = = = = = = = = = = = = =
+=================================================================================================
+Initial means selection.
+Iter# 1 ~ [ 35.00| 74.00] [ 68.00| 74.00] 
+Iter# 2 ~ [ 19.38| 37.19] [ 67.40| 67.80] 
+Iter# 3 ~ [ 21.76| 36.41] [ 62.00| 68.83] 
+Iter# 4 ~ [ 21.76| 36.41] [ 59.14| 66.71] 
+Iter# 5 ~ [ 21.76| 36.41] [ 59.14| 66.71] 
+Total iterations performed: 4.
+Writing result image at "results\results_test.bmp.

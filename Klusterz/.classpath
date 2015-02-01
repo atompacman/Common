@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src/main/java"/>
+	<classpathentry kind="src" path="src/test/java"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER">
+		<attributes>
+			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="C:/Program Files (x86)/Java/jdk1.7.0_60"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/AtomLog"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/Configuana"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/ToolKat"/>
+	<classpathentry kind="lib" path="C:/Users/Utilisateur/Documents/Eclipse/Libraries/json-20140107.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>

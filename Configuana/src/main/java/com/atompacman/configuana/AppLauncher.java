@@ -15,6 +15,7 @@ import java.util.Set;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import com.atompacman.configuana.Lib.LibInfo;
 import com.atompacman.toolkat.exception.Throw;
 import com.atompacman.toolkat.io.TextFileReader;
 
@@ -78,13 +79,13 @@ public class AppLauncher {
 		if (args.length == 1) {
 			Throw.aRuntime(AppLauncherException.class, "Expected a command as second argument");
 		}
-		
+
 		Cmd<A,F> cmd = (Cmd<A,F>) parseCmd(args[1], app.getCmdClasses());
 		Class<F> flagClass = flagClassOf((Class<? extends Cmd<?,F>>)cmd.getClass(), app.getClass());
 		CmdArgs<F> cmdArgs = parseCmdArgs(args, cmd, flagClass);
-		
+
 		cmd.execute(app, cmdArgs);
-		
+
 		app.shutdownApp();
 	}
 
@@ -106,7 +107,7 @@ public class AppLauncher {
 
 			JSONObject root = new JSONObject(jsonFileContent);
 			root = root.getJSONObject(APP_CONFIG_FILE_ROOT_OBJ_FIELD);
-			
+
 			appName = root.getString(APP_CONFIG_FILE_NAME_FIELD);
 			appVersion = root.getString(APP_CONFIG_FILE_VERSION_FIELD);
 			mainLibConfigFile = root.getString(APP_CONFIG_FILE_MAIN_LIB_FIELD);
@@ -129,44 +130,45 @@ public class AppLauncher {
 											   String mainLibConfigFile, 
 											   String appConfigFilePath,
 											   Set<String> otherLibConfigFiles) {
+
+		List<LibInfo> libsInfo = new ArrayList<>();
+		
+		for (String libConfigFilePath : otherLibConfigFiles) {
+			libsInfo.add(parseLibInfo(libConfigFilePath, appConfigFilePath));
+		}
+
+		addURLToClassLoader(libsInfo);
 		
 		List<Lib> libs = new ArrayList<>();
 		
-		for (String libConfigFilePath : otherLibConfigFiles) {
-			try {
-				Lib lib = createLib(libConfigFilePath, appConfigFilePath);
-				libs.add(lib);
-			} catch (Exception e) {
-				Throw.aRuntime(AppLauncherException.class, "Failed to add library described "
-						+ "by the file at \"" + libConfigFilePath + "\" to app", e);
-			}
+		for (LibInfo info : libsInfo) {
+			libs.add(createLib(info));
 		}
 		
-		Lib mainLib = createLib(mainLibConfigFile, appConfigFilePath);
-		
+		Lib mainLib = createLib(parseLibInfo(mainLibConfigFile, appConfigFilePath));
+
 		if (!App.class.isAssignableFrom(mainLib.getClass())) {
-			Throw.aRuntime(AppLauncherException.class, "Main library \"" + mainLib.getLibName() 
-					+ "\" must implement the " + App.class + " interface");
+			Throw.aRuntime(AppLauncherException.class, "Main library \"" + 
+					mainLib.getLibInfo().getName() + "\" must implement "
+					+ "the " + App.class + " interface");
 		}
-		
+
 		A app = (A) mainLib;
 
 		app.setAppName(appName);
 		app.setAppVersion(appVersion);
 		app.setAppConfigFilePath(appConfigFilePath);
-		
+
 		for (Lib lib : libs) {
 			lib.setParentApp(app);
 			app.addLib(lib);
 		}
-		
+
 		return app;
 	}
 
-	@SuppressWarnings("unchecked")
-	private static <L extends Lib> Class<L> loadLibClass(String libClassName, String libBinPath) {
+	private static void addURLToClassLoader(List<LibInfo> libsInfo) {
 		URLClassLoader classLoader;
-		
 		try {
 			classLoader = (URLClassLoader) Thread.currentThread().getContextClassLoader();
 		} catch (Exception e) {
@@ -174,35 +176,22 @@ public class AppLauncher {
 		}
 		
 		URL[] urls = classLoader.getURLs();
-		URL[] newUrls = new URL[urls.length + 1];
+		URL[] newUrls = new URL[urls.length + libsInfo.size()];
 		System.arraycopy(urls, 0, newUrls, 0, urls.length);
-
+		
+		String libBinPath = null;
+		
 		try {
-			newUrls[urls.length] = new File(libBinPath).toURI().toURL();
+			for (LibInfo info : libsInfo) {
+				libBinPath = info.getBinariesPath();
+				newUrls[urls.length] = new File(libBinPath).toURI().toURL();
+			}
 		} catch (MalformedURLException e) {
 			Throw.aRuntime(AppLauncherException.class, "Invalid URL \"" + libBinPath + "\"", e);
 		}
 		
 		classLoader = new URLClassLoader(newUrls);
 		Thread.currentThread().setContextClassLoader(classLoader);
-		
-		Class<?> clazz = null;
-		try {
-			try {
-				clazz = classLoader.loadClass(libClassName);
-			} catch (ClassNotFoundException e) {
-				Throw.aRuntime(AppLauncherException.class, "Class not found");
-			}
-			if (!Lib.class.isAssignableFrom(clazz)) {
-				Throw.aRuntime(AppLauncherException.class, "Class must implement "
-						+ "the " + Lib.class.getSimpleName() + " interface");
-			}
-		} catch (Exception e) {
-			Throw.aRuntime(AppLauncherException.class, "Invalid "+ Lib.class.getSimpleName() 
-					+ " class \"" + libClassName + "\"", e);
-		}
-		
-		return (Class<L>) clazz;
 	}
 
 	private static List<String> jSONArrayToStringList(JSONArray jsonArray) {
@@ -213,8 +202,7 @@ public class AppLauncher {
 		return list;
 	}
 
-	@SuppressWarnings("unchecked")
-	private static <L extends Lib> L createLib(String libConfigFilePath, String appConfigFilePath) {
+	private static LibInfo parseLibInfo(String libConfigFilePath, String appConfigFilePath) {
 		File libConfigFile = new File(libConfigFilePath);
 
 		if (!libConfigFile.exists()) {
@@ -225,52 +213,52 @@ public class AppLauncher {
 						+ "library configuration JSON file at \"" + libConfigFilePath + "\"");
 			}
 		}
-
-		String libName = null;
-		String libVersion = null;
-		String libBinPath = null;
-		String libDefProfile = null;
-		Class<L> libClass = null;
-		List<String> settingsProfileFilePaths = null;
 		
+		LibInfo info = new LibInfo();
+
 		try {
 			String jsonFileContent = TextFileReader.readAsSingleLine(libConfigFile);
 
 			JSONObject root = new JSONObject(jsonFileContent);
 			root = root.getJSONObject(LIB_CONFIG_FILE_ROOT_OBJ_FIELD);
 
-			libName = root.getString(LIB_CONFIG_FILE_NAME_FIELD);
-			libVersion = root.getString(LIB_CONFIG_FILE_VERSION_FIELD);
-			libBinPath = root.getString(LIB_CONFIG_FILE_BINARIES_FIELD);
-			libDefProfile = root.getString(LIB_CONFIG_FILE_DEFAULT_PROFILE_FIELD);
-			
-			String libClassName = root.getString(LIB_CONFIG_FILE_CLASS_FIELD);
-			libClass = (Class<L>) loadLibClass(libClassName, libBinPath);
+			info.setName				(root.getString(LIB_CONFIG_FILE_NAME_FIELD));
+			info.setVersion				(root.getString(LIB_CONFIG_FILE_VERSION_FIELD));
+			info.setBinariesPath		(root.getString(LIB_CONFIG_FILE_BINARIES_FIELD));
+			info.setDefaultProfileName	(root.getString(LIB_CONFIG_FILE_DEFAULT_PROFILE_FIELD));
+			info.setLibClassName		(root.getString(LIB_CONFIG_FILE_CLASS_FIELD));
 
 			JSONArray profileFilePaths = root.getJSONArray(LIB_CONFIG_FILE_SETTINGS_PROFILES_FIELD);
-			settingsProfileFilePaths = jSONArrayToStringList(profileFilePaths);
+			info.setSettingsProfileNames(jSONArrayToStringList(profileFilePaths));
 		} catch (Exception e) {
 			Throw.aRuntime(AppLauncherException.class, "Failed to parse JSON library "
 					+ "configuration file at \"" + libConfigFilePath + "\"", e);
 		}
 		
-		L lib = createInstance(libClass);
-
-		lib.setLibName(libName);
-		lib.setLibVersion(libVersion);
-		lib.setLibBinariesPath(libBinPath);
-		lib.setDefaultProfileName(new File(libDefProfile).getAbsolutePath());
-		lib.setLibConfigFilePath(libConfigFile.getAbsolutePath());
-		
-		for (String settingsProfileFilePath : settingsProfileFilePaths) {
+		return info;
+	}
+	
+	@SuppressWarnings("unchecked")
+	private static <L extends Lib> L createLib(LibInfo info) {
+		Class<?> clazz = null;
+		ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+		try {
 			try {
-				lib.addSettingsProfile(new File(settingsProfileFilePath).getAbsolutePath(), true);
-			} catch (AppLauncherException e) {
-				Throw.aRuntime(AppLauncherException.class, "Failed to add settings profile \"" 
-						+ settingsProfileFilePath + "\" to library \"" + libName + "\"", e);
+				clazz = classLoader.loadClass(info.getLibClassName());
+			} catch (ClassNotFoundException e) {
+				Throw.aRuntime(AppLauncherException.class, "Class not found");
 			}
+			if (!Lib.class.isAssignableFrom(clazz)) {
+				Throw.aRuntime(AppLauncherException.class, "Class must implement "
+						+ "the " + Lib.class.getSimpleName() + " interface");
+			}
+		} catch (Exception e) {
+			Throw.aRuntime(AppLauncherException.class, "Invalid "+ Lib.class.getSimpleName() 
+					+ " class \"" + info.getLibClassName() + "\"", e);
 		}
-
+		
+		L lib = (L) createInstance(clazz);
+		lib.setLibInfo(info);
 		lib.init();
 		
 		return lib;
@@ -319,7 +307,7 @@ public class AppLauncher {
 	@SuppressWarnings("unchecked")
 	private static <F extends Flag, A extends App> Class<F> flagClassOf(
 			Class<? extends Cmd<?,?>> cmdClass, Class<? extends App> trueAppClass) {
-		
+
 		Class<A> appClass = null;
 		Class<F> flagClass = null;
 		try {

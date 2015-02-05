@@ -146,7 +146,7 @@ public class Settings implements ReadOnlySettings {
 			File profile = new File(profileFilePath);
 
 			if (!profile.exists()) {
-				String libConfigDir = new File(lib.getLibConfigFilePath()).getParent();
+				String libConfigDir = new File(lib.getLibInfo().getConfigFilePath()).getParent();
 				profile = new File(libConfigDir + File.separator + profileFilePath);
 				if (!profile.exists()) {
 					Throw.aRuntime(AppLauncherException.class, "Could not found a Configuana"

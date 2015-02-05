@@ -47,11 +47,11 @@ public abstract class App extends Lib {
 	}
 
 	void addLib(Lib lib) {
-		if (libraries.containsKey(lib.getLibName())) {
-			Throw.aRuntime(AppLauncherException.class, "Library \"" + lib.getLibName()
+		if (libraries.containsKey(lib.getLibInfo().getName())) {
+			Throw.aRuntime(AppLauncherException.class, "Library \"" + lib.getLibInfo().getName()
 					+ "\" was already added to app \"" + getAppName());		
 		}
-		libraries.put(lib.getLibName(), lib);
+		libraries.put(lib.getLibInfo().getName(), lib);
 	}
 
 
@@ -77,7 +77,7 @@ public abstract class App extends Lib {
 		Lib lib = libraries.get(libName);
 		if (lib == null) {
 			throw new IllegalArgumentException("No library named \"" + 
-					libName + "\" is part of app \"" + getLibName());
+					libName + "\" is part of app \"" + getLibInfo().getName());
 		}
 		return lib;
 	}

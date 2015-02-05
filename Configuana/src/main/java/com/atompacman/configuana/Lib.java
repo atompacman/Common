@@ -1,5 +1,6 @@
 package com.atompacman.configuana;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -11,13 +12,90 @@ import com.atompacman.toolkat.exception.Throw;
 
 public abstract class Lib {
 
+	//===================================== INNER TYPES ==========================================\\
+
+	public static class LibInfo {
+		
+		//===================================== FIELDS ===========================================\\
+
+		private String 					  	name;
+		private String					  	version;
+		private String					  	configFilePath;
+		private String			 			binariesPath;
+		private String						defaultProfileName;
+		private String						libClassName;
+		private List<String>				settingsProfileNames;
+		
+		
+		
+		//===================================== METHODS ==========================================\\
+
+		//------------------------------------- SETTERS ------------------------------------------\\
+
+		void setName(String libName) {
+			this.name = libName;
+		}
+		
+		void setVersion(String libVersion) {
+			this.version = libVersion;
+		}
+		
+		void setConfigFilePath(String libConfigFilePath) {
+			this.configFilePath = libConfigFilePath;
+		}
+		
+		void setBinariesPath(String libBinariesPath) {
+			this.binariesPath = libBinariesPath;
+		}
+		
+		void setDefaultProfileName(String defaultProfileName) {
+			this.defaultProfileName = defaultProfileName;
+		}
+
+		void setLibClassName(String libClassName) {
+			this.libClassName = libClassName;
+		}
+		
+		void setSettingsProfileNames(List<String> settingsProfileNames) {
+			this.settingsProfileNames = settingsProfileNames;
+		}
+		
+		//------------------------------------- GETTERS ------------------------------------------\\
+
+		public String getName() {
+			return name;
+		}
+		
+		public String getVersion() {
+			return version;
+		}
+		
+		public String getConfigFilePath() {
+			return configFilePath;
+		}
+		
+		public String getBinariesPath() {
+			return binariesPath;
+		}
+		
+		public String getDefaultProfileName() {
+			return defaultProfileName;
+		}
+
+		public String getLibClassName() {
+			return libClassName;
+		}
+		
+		public List<String> getSettingsProfileNames() {
+			return settingsProfileNames;
+		}
+	}
+	
+	
+	
 	//======================================= FIELDS =============================================\\
 
-	private String 					  	libName;
-	private String					  	libVersion;
-	private String					  	libConfigFilePath;
-	private String			 			libBinariesPath;
-	private String						defaultProfileName;
+	private LibInfo 					info;
 	private Map<String, Settings> 	  	settingsProfiles;
 	private App					  		parentApp;
 
@@ -45,24 +123,16 @@ public abstract class Lib {
 	
 	//--------------------------------------- SETTERS --------------------------------------------\\
 
-	void setLibName(String name) {
-		this.libName = name;
-	}
-
-	void setLibVersion(String version) {
-		this.libVersion = version;
-	}
-
-	void setLibConfigFilePath(String configFilePath) {
-		this.libConfigFilePath = configFilePath;
-	}
-
-	void setLibBinariesPath(String appBinariesPath) {
-		this.libBinariesPath = appBinariesPath;
-	}
-	
-	void setDefaultProfileName(String defaultProfileName) {
-		this.defaultProfileName = defaultProfileName;
+	void setLibInfo(LibInfo info) {
+		this.info = info;
+		for (String settingsProfileFilePath : info.settingsProfileNames) {
+			try {
+				addSettingsProfile(new File(settingsProfileFilePath).getAbsolutePath(), true);
+			} catch (AppLauncherException e) {
+				Throw.aRuntime(AppLauncherException.class, "Failed to add settings profile \"" 
+						+ settingsProfileFilePath + "\" to library \"" + info.name + "\"", e);
+			}
+		}
 	}
 	
 	void addSettingsProfile(String profileFilePath, boolean existingFile) {
@@ -92,24 +162,12 @@ public abstract class Lib {
 	
 	//--------------------------------------- GETTERS --------------------------------------------\\
 
-	public String getLibName() {
-		return libName;
-	}
-	
-	public String getLibVersion() {
-		return libVersion;
-	}
-
-	public String getLibConfigFilePath() {
-		return libConfigFilePath;
-	}
-	
-	public String getLibBinariesPath() {
-		return libBinariesPath;
+	public LibInfo getLibInfo() {
+		return info;
 	}
 	
 	public Settings getDefaultProfile() {
-		return getSettingsProfile(defaultProfileName);
+		return getSettingsProfile(info.defaultProfileName);
 	}
 	
 	public Settings getSettingsProfile(String profileName) {

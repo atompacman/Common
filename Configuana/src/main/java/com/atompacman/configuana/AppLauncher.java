@@ -134,9 +134,10 @@ public class AppLauncher {
 		List<LibInfo> libsInfo = new ArrayList<>();
 		
 		for (String libConfigFilePath : otherLibConfigFiles) {
-			libsInfo.add(parseLibInfo(libConfigFilePath, appConfigFilePath));
+			libsInfo.add(parseLibInfo(libConfigFilePath));
 		}
-
+		libsInfo.add(parseLibInfo(mainLibConfigFile));
+		
 		addURLToClassLoader(libsInfo);
 		
 		List<Lib> libs = new ArrayList<>();
@@ -144,8 +145,7 @@ public class AppLauncher {
 		for (LibInfo info : libsInfo) {
 			libs.add(createLib(info));
 		}
-		
-		Lib mainLib = createLib(parseLibInfo(mainLibConfigFile, appConfigFilePath));
+		Lib mainLib = libs.get(libs.size() - 1);
 
 		if (!App.class.isAssignableFrom(mainLib.getClass())) {
 			Throw.aRuntime(AppLauncherException.class, "Main library \"" + 
@@ -182,9 +182,9 @@ public class AppLauncher {
 		String libBinPath = null;
 		
 		try {
-			for (LibInfo info : libsInfo) {
-				libBinPath = info.getBinariesPath();
-				newUrls[urls.length] = new File(libBinPath).toURI().toURL();
+			for (int i = 0; i < libsInfo.size(); ++i) {
+				libBinPath = libsInfo.get(i).getBinariesPath();
+				newUrls[urls.length + i] = new File(libBinPath).toURI().toURL();
 			}
 		} catch (MalformedURLException e) {
 			Throw.aRuntime(AppLauncherException.class, "Invalid URL \"" + libBinPath + "\"", e);
@@ -202,20 +202,17 @@ public class AppLauncher {
 		return list;
 	}
 
-	private static LibInfo parseLibInfo(String libConfigFilePath, String appConfigFilePath) {
+	private static LibInfo parseLibInfo(String libConfigFilePath) {
 		File libConfigFile = new File(libConfigFilePath);
 
 		if (!libConfigFile.exists()) {
-			String appConfigDir = new File(appConfigFilePath).getParent();
-			libConfigFile = new File(appConfigDir + File.separator + libConfigFile);
-			if (!libConfigFile.exists()) {
-				Throw.aRuntime(AppLauncherException.class, "Could not found a Configuana"
-						+ "library configuration JSON file at \"" + libConfigFilePath + "\"");
-			}
+			Throw.aRuntime(AppLauncherException.class, "Could not found a Configuana"
+					+ "library configuration JSON file at \"" + libConfigFilePath + "\"");
 		}
 		
 		LibInfo info = new LibInfo();
-
+		info.setConfigFilePath(libConfigFilePath);
+		
 		try {
 			String jsonFileContent = TextFileReader.readAsSingleLine(libConfigFile);
 
@@ -287,7 +284,7 @@ public class AppLauncher {
 	}
 
 	private static Cmd<?,?> parseCmd(String arg, List<Class<? extends Cmd<?,?>>> cmdClasses) {
-		for (Class<? extends Cmd<?,?>> cmdClass : new LinkedHashSet<>(cmdClasses)) {
+		for (Class<? extends Cmd<?,?>> cmdClass : cmdClasses) {
 			Cmd<?,?> cmd = null;
 			try {
 				cmd = cmdClass.newInstance();
@@ -319,8 +316,8 @@ public class AppLauncher {
 					+ "class of Cmd class \"" + cmdClass.getSimpleName() + "\"", e);
 		}
 		try {
-			Type flagInterface = cmdClass.getGenericInterfaces()[1];
-			Type flagType = ((ParameterizedType) flagInterface).getActualTypeArguments()[0];
+			Type flagInterface = cmdClass.getGenericInterfaces()[0];
+			Type flagType = ((ParameterizedType) flagInterface).getActualTypeArguments()[1];
 			flagClass = (Class<F>) flagType;
 		} catch (Exception e) {
 			Throw.aRuntime(AppLauncherException.class, "Could not extract the Flag "

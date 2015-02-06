@@ -41,7 +41,7 @@ public abstract class ClusteringAlgorithm {
 	//------------ EXECUTE ------------\\
 
 	public List<KClass> execute() {
-		if (Log.infos() && Log.print("Initial means selection."));
+		if (Log.infos() && Log.print("Initial means selection"));
 		classes = initialMeansSelector.selectInitialMeans(elements);
 		
 		int nbIterations = 0;
@@ -54,12 +54,15 @@ public abstract class ClusteringAlgorithm {
 
 		logMeans(nbIterations);
 		
-		if (Log.infos() && Log.print("Total iterations performed: " + nbIterations + "."));
+		if (Log.infos() && Log.print("Total iterations performed: " + nbIterations));
 		
 		return Arrays.asList(classes);
 	}
 	
 	private void classElements() {
+		for (KClass kClass : classes) {
+			kClass.elementsIndex.clear();
+		}
 		for (int i = 0; i < elements.length; ++i) {
 			Element element = elements[i];
 			double minDistance = Double.MAX_VALUE;

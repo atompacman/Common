@@ -50,7 +50,6 @@ public class KMeans extends ClusteringAlgorithm {
 				kClass.mean = new Element(newMean);
 			}
 		}
-		
 		return convergence;
 	}
 }

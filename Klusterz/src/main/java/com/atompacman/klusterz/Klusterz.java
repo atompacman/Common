@@ -35,6 +35,8 @@ public final class Klusterz extends App {
 	//---------------------------------------- INIT ----------------------------------------------\\
 
 	public void init() {
+		if (Log.infos() && Log.title("KLUSTERZ"));
+		
 		TestFileDetector.setPackagePathToRemove(Klusterz.class.getPackage().getName());
 		TestFileDetector.setTestDirectory(Paths.TEST_DIRECTORY);
 		randGen = new Random(getDefaultProfile().getLong(Misc.RANDOM_SEED));
@@ -44,9 +46,7 @@ public final class Klusterz extends App {
 	//--------------------------------------- EXECUTE --------------------------------------------\\
 
 	public static List<KClass> execute(ClusteringPlan plan) {
-		if (Log.infos() && Log.line(0));
-		if (Log.infos() && Log.title("KLUSTERZ", 1));
-		if (Log.infos() && Log.line(0));
+		if (Log.infos() && Log.print("Beginning clustering"));
 
 		if (plan.getAlgorithm()    == null || 
 			plan.getElements()     == null || 
@@ -67,6 +67,7 @@ public final class Klusterz extends App {
 		}
 
 		if (nbElements < nbClasses) {
+			if (Log.warng() && Log.print("More classes than elements: Using trivial solution"));
 			return trivialSolution(elements);
 		}
 
@@ -138,15 +139,11 @@ public final class Klusterz extends App {
 		return cmdClasses;
 	}
 
-
-
 	public List<Class<? extends Param>> getParamsClasses() {
 		List<Class<? extends Param>> paramClasses = new ArrayList<>();
 		paramClasses.add(Parameters.class);
 		return paramClasses;
 	}
-	
-	
 
 
 	//--------------------------------------- SHUTDOWN -------------------------------------------\\

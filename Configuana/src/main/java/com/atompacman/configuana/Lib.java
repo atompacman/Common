@@ -1,6 +1,7 @@
 package com.atompacman.configuana;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -59,6 +60,7 @@ public abstract class Lib {
 		void setSettingsProfileNames(List<String> settingsProfileNames) {
 			this.settingsProfileNames = settingsProfileNames;
 		}
+		
 		
 		//------------------------------------- GETTERS ------------------------------------------\\
 
@@ -125,14 +127,19 @@ public abstract class Lib {
 
 	void setLibInfo(LibInfo info) {
 		this.info = info;
+		List<String> settingsProfilePaths = new ArrayList<>();
 		for (String settingsProfileFilePath : info.settingsProfileNames) {
 			try {
-				addSettingsProfile(new File(settingsProfileFilePath).getAbsolutePath(), true);
+				String fullPath = new File(settingsProfileFilePath).getAbsolutePath();
+				settingsProfilePaths.add(fullPath);
+				addSettingsProfile(fullPath, true);
 			} catch (AppLauncherException e) {
 				Throw.aRuntime(AppLauncherException.class, "Failed to add settings profile \"" 
 						+ settingsProfileFilePath + "\" to library \"" + info.name + "\"", e);
 			}
 		}
+		info.setDefaultProfileName(new File(info.defaultProfileName).getAbsolutePath());
+		info.setSettingsProfileNames(settingsProfilePaths);
 	}
 	
 	void addSettingsProfile(String profileFilePath, boolean existingFile) {

@@ -176,7 +176,7 @@ public class ImageColorSegmentation implements Cmd<Klusterz, ICSFlag> {
 	//--------------------------------------- GETTERS --------------------------------------------\\
 
 	public CmdInfo info() {
-		return new CmdInfo("ics", "Image Color Segmentation", 2, 
-				"Reduce the number of different colors in an image using clustering");
+		return new CmdInfo("ics", "Image Color Segmentation", 2, "Reduce the "
+				+ "number of different colors in an image using clustering");
 	}
 }

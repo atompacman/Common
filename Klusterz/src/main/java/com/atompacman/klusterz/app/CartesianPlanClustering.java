@@ -11,6 +11,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.imageio.ImageIO;
@@ -54,20 +55,18 @@ public class CartesianPlanClustering implements Cmd<Klusterz, CPCFlag> {
 		PTS_SIZE_ON_FINAL_IMAGE 	{ public FlagInfo info() { return new FlagInfo(
 				"pt_size", "Points size on final image", 1, 
 				"Define the size of the points on the final image", 
-				Integer.toString(CPC.PT_SIZE_ON_IMG));
+				Integer.toString(CPC.DEFAULT_PT_SIZE_ON_IMG));
 			}},
 		MEANS_SIZE_ON_FINAL_IMAGE 	{ public FlagInfo info() { return new FlagInfo(
 				"mean_size", "Means points size on final image", 1, 
 				"Define the size of the mean points on the final image", 
-				Integer.toString(CPC.MEAN_PT_SIZE_ON_IMG));
-			}},
-			
+				Integer.toString(CPC.DEFAULT_MEAN_PT_SIZE_ON_IMG));
+			}},	
 		FINAL_IMAGE_SIZE_WIDTH 		{ public FlagInfo info() { return new FlagInfo(
 				"width", "Final image width", 1, 
 				"Define the length of the final width", 
 				Integer.toString(CPC.DEFAULT_IMG_WIDTH));
-			}},
-			
+			}},	
 		FINAL_IMAGE_SIZE_HEIGHT 	{ public FlagInfo info() { return new FlagInfo(
 				"height", "Final image height", 1, 
 				"Define the length of the final height", 
@@ -93,7 +92,7 @@ public class CartesianPlanClustering implements Cmd<Klusterz, CPCFlag> {
 	private Algorithm clusterAlgo;
 	private InitialMeans initMeansSelect;
 	
-	// Cartesian plan parameters
+	// Cartesian plan
 	private Element[] points;
 	private double[] planMinima;
 	private double[] planMaxima;
@@ -114,35 +113,33 @@ public class CartesianPlanClustering implements Cmd<Klusterz, CPCFlag> {
 	//---------------------------------- PUBLIC CONSTRUCTOR --------------------------------------\\
 
 	public CartesianPlanClustering() {
-		if (Log.infos() && Log.title(CP + " clustering application"));
+		this.clusterAlgo = Algorithm.valueOf(CPC.DEFAULT_ALGORITHM);
+		this.initMeansSelect = InitialMeans.valueOf(CPC.DEFAULT_INITIAL_MEANS);
 		
-		String algo = CPC.DEFAULT_ALGORITHM;
-		String initialMeans = CPC.DEFAULT_INITIAL_MEANS;
-
-		this.clusterAlgo = Algorithm.valueOf(algo);
-		this.initMeansSelect = InitialMeans.valueOf(initialMeans);
+		this.points 			= null;
+		this.planMinima 		= new double[2];
+		this.planMaxima			= new double[2];
+		this.cartesianPlanRead 	= false;
 		
-		this.points = null;
-		this.planMinima = new double[2];
-		this.planMaxima = new double[2];
-		this.cartesianPlanRead = false;
-		
-		this.clusters = null;
-		this.planClustered = false;
-		this.resImgPtSize = CPC.PT_SIZE_ON_IMG;
-		this.resImgMeanSize = CPC.MEAN_PT_SIZE_ON_IMG;
-		this.coordToPixelX = 0;
-		this.coordToPixelY = 0;
+		this.clusters 			= null;
+		this.planClustered 		= false;
+		this.resImgPtSize 		= CPC.DEFAULT_PT_SIZE_ON_IMG;
+		this.resImgMeanSize 	= CPC.DEFAULT_MEAN_PT_SIZE_ON_IMG;
+		this.coordToPixelX 		= 0;
+		this.coordToPixelY 		= 0;
 	}
 
 
 	//--------------------------------------- EXECUTE --------------------------------------------\\
 	
 	public void execute(Klusterz app, CmdArgs<CPCFlag> args) {
-		clusterAlgo = Algorithm.valueOf(args.getValue(CPCFlag.ALGORITHM));
+		if (Log.infos() && Log.title(CP + " clustering application", 1));
+
+		// Read Cartesian plan
+		clusterAlgo 	= Algorithm.valueOf(args.getValue(CPCFlag.ALGORITHM));
 		initMeansSelect = InitialMeans.valueOf(args.getValue(CPCFlag.INIT_MEANS_SELECTION));
-		resImgPtSize = Integer.parseInt(args.getValue(CPCFlag.PTS_SIZE_ON_FINAL_IMAGE));
-		resImgPtSize = Integer.parseInt(args.getValue(CPCFlag.MEANS_SIZE_ON_FINAL_IMAGE));
+		resImgPtSize 	= Integer.parseInt(args.getValue(CPCFlag.PTS_SIZE_ON_FINAL_IMAGE));
+		resImgMeanSize 	= Integer.parseInt(args.getValue(CPCFlag.MEANS_SIZE_ON_FINAL_IMAGE));
 		
 		String cartesianPlanFile = args.getMainArgs().get(0);
 		
@@ -153,6 +150,7 @@ public class CartesianPlanClustering implements Cmd<Klusterz, CPCFlag> {
 					+ "file at \"" + cartesianPlanFile + "\".", e);
 		}
 		
+		// Cluster
 		int nbClasses = Integer.parseInt(args.getMainArgs().get(1));
 		
 		try {
@@ -161,6 +159,7 @@ public class CartesianPlanClustering implements Cmd<Klusterz, CPCFlag> {
 			throw new RuntimeException("Clustering algorithm failed.", e);
 		}
 		
+		// Write result image
 		String outputFile = args.getValue(CPCFlag.OUTPUT_IMAGE_PATH);
 		int imgWidth = Integer.parseInt(args.getValue(CPCFlag.FINAL_IMAGE_SIZE_WIDTH));
 		int imgHeight = Integer.parseInt(args.getValue(CPCFlag.FINAL_IMAGE_SIZE_HEIGHT));
@@ -173,35 +172,13 @@ public class CartesianPlanClustering implements Cmd<Klusterz, CPCFlag> {
 	}
 	
 
-	//--------------------------------------- CLUSTER --------------------------------------------\\
-
-	public void cluster(int nbClusters) throws ClusteringAppException {
-		if (Log.infos() && Log.print("Clustering " + CP + "."));
-
-		if (!cartesianPlanRead) {
-			Throw.a(ClusteringAppException.class, "A " + CPDF + " must be read before clustering.");
-		}
-		if (nbClusters < 1) {
-			Throw.a(ClusteringAppException.class, "Nb of clusters must be a positive integer.");
-		}
-		
-		ClusteringPlan plan = new ClusteringPlan(clusterAlgo, points, nbClusters, initMeansSelect);
-		plan.setDimensionsMinima(planMinima);
-		plan.setDimensionsMaxima(planMaxima);
-		
-		clusters = Klusterz.execute(plan);
-		
-		planClustered = true;
-	}
-	
-	
 	//------------------------------- READ CARTESIAN PLAN FILE -----------------------------------\\
 
 	public void readCartesianPlanFile(String cartesianPlanDescFile) throws ClusteringAppException {
 		if (cartesianPlanDescFile == null) {
 			Throw.a(ClusteringAppException.class, CPDF + " path is null.");
 		}
-
+		
 		if (Log.infos() && Log.print("Reading " + CPDF + " at \"" + cartesianPlanDescFile + "\"."));
 		
 		List<String> fileLines = readFileLines(cartesianPlanDescFile);
@@ -296,13 +273,32 @@ public class CartesianPlanClustering implements Cmd<Klusterz, CPCFlag> {
 	}
 
 
+	//--------------------------------------- CLUSTER --------------------------------------------\\
+
+	public void cluster(int nbClusters) throws ClusteringAppException {
+		if (Log.infos() && Log.print("Clustering " + CP));
+
+		if (!cartesianPlanRead) {
+			Throw.a(ClusteringAppException.class, "A " + CPDF + " must be read before clustering.");
+		}
+		if (nbClusters < 1) {
+			Throw.a(ClusteringAppException.class, "Nb of clusters must be a positive integer.");
+		}
+		
+		ClusteringPlan plan = new ClusteringPlan(clusterAlgo, points, nbClusters, initMeansSelect);
+		plan.setDimensionsMinima(planMinima);
+		plan.setDimensionsMaxima(planMaxima);
+		
+		clusters = Klusterz.execute(plan);
+		
+		planClustered = true;
+	}
+	
+
 	//---------------------------------- WRITE RESULT IMAGE --------------------------------------\\
 
 	public void writeResultImage(String resFilePath) throws ClusteringAppException {
-		int width = CPC.DEFAULT_IMG_WIDTH;
-		int height = CPC.DEFAULT_IMG_HEIGHT;		
-		Dimension dim = new Dimension(width, height);
-		writeResultImage(resFilePath, dim);
+		writeResultImage(resFilePath, new Dimension(CPC.DEFAULT_IMG_WIDTH, CPC.DEFAULT_IMG_HEIGHT));
 	}
 
 	public void writeResultImage(String resFilePath, Dimension dim) throws ClusteringAppException {
@@ -315,7 +311,7 @@ public class CartesianPlanClustering implements Cmd<Klusterz, CPCFlag> {
 			Throw.a(ClusteringAppException.class, "Null output path.");
 		}
 		
-		if (Log.infos() && Log.print("Writing result image at \"" + resFilePath + "."));
+		if (Log.infos() && Log.print("Writing result image at \"" + resFilePath));
 
 		WritableRaster raster = WritableRaster.createInterleavedRaster(
 				DataBuffer.TYPE_BYTE, dim.width, dim.height, 3, new Point(0,0));
@@ -323,30 +319,26 @@ public class CartesianPlanClustering implements Cmd<Klusterz, CPCFlag> {
 		coordToPixelX = (double) dim.width / (planMaxima[X] - planMinima[X]);
 		coordToPixelY = (double) dim.height / (planMaxima[Y] - planMinima[Y]);
 
-
+		int[][] colors = generateColors();
+		
 		for (int i = 0; i < clusters.size(); ++i) {
 			KClass kClass = clusters.get(i);
+			int[] color = colors[i];
 			
-			int[] randElemColorArray = createRandomElementColorArray(i);
-
 			for (Integer pointIndex : kClass.elementsIndex) {
 				double[] coord = points[pointIndex].components;
-				coord = planCoordToPixelCenter(coord, raster, resImgPtSize);
-				raster.setPixels((int) coord[X], (int) coord[Y], 
-						resImgPtSize, resImgPtSize, randElemColorArray);
+				addRectangleToRegion(coord, raster, resImgPtSize, color);
 			}
 
-			double[] meanCoord = kClass.mean.components;
-			randElemColorArray = createMeanColorArray(randElemColorArray);
-			meanCoord = planCoordToPixelCenter(meanCoord, raster, resImgMeanSize);
+			for (int j = 0; j < 3; ++j) {
+				color[j] *= CPC.MEAN_COLOR_DARK_COEFF;
+			}
 			
-			raster.setPixels((int) meanCoord[X], (int) meanCoord[Y], 
-					resImgMeanSize, resImgMeanSize, randElemColorArray);
-			int[] black = {0,0,0};
-			int shift = (int) (resImgMeanSize * 0.5);
-			raster.setPixels((int) meanCoord[X] + shift, (int) meanCoord[Y] + shift, 
-					1, 1, black);
+			double[] meanCoord = kClass.mean.components;
+			addRectangleToRegion(meanCoord, raster, resImgMeanSize, color);
 		}
+		
+		fillRegions(raster, colors);
 
 		BufferedImage image = new BufferedImage(dim.width, dim.height, BufferedImage.TYPE_INT_RGB);
 		image.setData(raster);
@@ -356,53 +348,22 @@ public class CartesianPlanClustering implements Cmd<Klusterz, CPCFlag> {
 		} catch (IOException e) {
 			Throw.a(ClusteringAppException.class, "Could not write final image", e);
 		}
+		if (Log.infos() && Log.print("Done writing image"));
 	}
 	
-	private double[] planCoordToPixelCenter(double[] cartCoord, WritableRaster raster, int ptSize) {
-		double[] pixelCoord = new double[2];
+	private int[][] generateColors() {
+		int[][] colors = new int[clusters.size()][3];
+		double increm = 1.0 / (double) clusters.size();
+		double value = 0;
 		
-		pixelCoord[X] = (int) (coordToPixelX * cartCoord[X]) - (int) (ptSize * 0.5);
-		pixelCoord[Y] = (int) (coordToPixelY * cartCoord[Y]) - (int) (ptSize * 0.5);
-
-		if (pixelCoord[X] < 0) {
-			pixelCoord[X] = 0;
+		for (int i = 0; i < clusters.size(); ++i) {
+			colors[i] = doubleToSaturatedColor(value);
+			value += increm;
 		}
-		if (pixelCoord[X] >= raster.getWidth()) {
-			pixelCoord[X] = raster.getWidth() - 1;
-		}
-		if (pixelCoord[Y] < 0) {
-			pixelCoord[Y] = 0;
-		}
-		if (pixelCoord[Y] >= raster.getHeight()) {
-			pixelCoord[Y] = raster.getHeight() - 1;
-		}
-		
-		return pixelCoord;
-	}
-
-	private int[] createRandomElementColorArray(int clusterNo) {
-		double colorValue = (double) clusterNo / (double) clusters.size();
-		int[] color = doubleToSaturatedColor(colorValue);
-		int nbPixelsInPoint = resImgPtSize * resImgPtSize;
-		int[] colorArray = new int[nbPixelsInPoint * 3];
-
-		for (int i = 0; i < nbPixelsInPoint; ++i) {
-			System.arraycopy(color, 0, colorArray, i * 3, 3);
-		}
-		return colorArray;
-	}
-
-	private int[] createMeanColorArray(int[] color) {
-		int nbPixelsInPoint = resImgMeanSize * resImgMeanSize;
-		int[] colorArray = new int[nbPixelsInPoint * 3];
-
-		for (int i = 0; i < nbPixelsInPoint; ++i) {
-			System.arraycopy(color, 0, colorArray, i * 3, 3);
-		}
-		return colorArray;
+		return colors;
 	}
 	
-	private int[] doubleToSaturatedColor(double value) {
+	private static int[] doubleToSaturatedColor(double value) {
 		double[] rgb = new double[3];
 		value *= 6;
 		value %= 6;
@@ -434,6 +395,66 @@ public class CartesianPlanClustering implements Cmd<Klusterz, CPCFlag> {
 		}
 		
 		return color;
+	}
+	
+	private void addRectangleToRegion(double[] cartCoord,  
+			WritableRaster raster, int ptSize, int[] color) {
+		
+		int[] upperLeftPxl = new int[2];
+		int[] lowerRightPxl = new int[2];
+		
+		upperLeftPxl[X] = (int) Math.rint(Math.max(0, coordToPixelX * cartCoord[X] - ptSize * 0.5));
+		upperLeftPxl[Y] = (int) Math.rint(Math.max(0, coordToPixelY * cartCoord[Y] - ptSize * 0.5));
+		lowerRightPxl[X] = Math.min(upperLeftPxl[X] + ptSize, raster.getWidth() - 1);
+		lowerRightPxl[Y] = Math.min(upperLeftPxl[Y] + ptSize, raster.getHeight() - 1);
+
+		int regionWidth = lowerRightPxl[X] - upperLeftPxl[X];
+		int regionHeight = lowerRightPxl[Y] - upperLeftPxl[Y];
+		int nbPxlInRegion = regionWidth * regionHeight;
+		
+		int[] colorArray = new int[nbPxlInRegion * 3];
+		for (int i = 0; i < nbPxlInRegion; ++i) {
+			System.arraycopy(color, 0, colorArray, i * 3, 3);
+		}
+		int[] border = new int[nbPxlInRegion * 3];
+		Arrays.fill(border, CPC.PT_BORDER_COLOR);
+		raster.setPixels(upperLeftPxl[X], upperLeftPxl[Y], regionWidth, regionHeight, border);
+		raster.setPixels(upperLeftPxl[X] + 1, upperLeftPxl[Y] + 1, 
+				regionWidth - 2, regionHeight - 2, colorArray);
+	}
+
+	private void fillRegions(WritableRaster raster, int[][] colors) {
+		double x2 = (planMaxima[X] - planMinima[X]) * (planMaxima[X] - planMinima[X]);
+		double y2 = (planMaxima[Y] - planMinima[Y]) * (planMaxima[Y] - planMinima[Y]);
+		double distFactor = 1.0 / Math.sqrt(x2 + y2);
+		
+		for (int x = 0; x < raster.getWidth(); ++x) {
+			for (int y = 0; y < raster.getHeight(); ++y) {
+				double[] pixel = raster.getPixel(x, y, (double[]) null);
+				if (pixel[0] != 0.0 || pixel[1] != 0.0 || pixel[2] != 0.0) {
+					continue;
+				}
+				
+				double minDist = Double.MAX_VALUE;
+				int closestClassIndex = -1;
+				for (int i = 0; i < clusters.size(); ++i) {
+					double xCoord = (double) x / coordToPixelX;
+					double yCoord = (double) y / coordToPixelY;
+					Element pt = new Element(new double[]{xCoord, yCoord});
+					double dist = clusters.get(i).mean.squareEuclidDistFrom(pt);
+					if (dist < minDist) {
+						minDist = dist;
+						closestClassIndex = i;
+					}
+				}
+				
+				for (int i = 0; i < 3; ++i) {
+					int comp = colors[closestClassIndex][i];
+					pixel[i] = comp * (1 - Math.pow(Math.sqrt(minDist) * distFactor, 0.2));
+				}
+				raster.setPixel(x, y, pixel);
+			}
+		}
 	}
 	
 	

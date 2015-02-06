@@ -4,18 +4,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.atompacman.toolkat.exception.Throw;
+import com.atompacman.toolkat.math.Interval;
 
 public class PatternDetector {
-
-	//===================================== INNER TYPES ==========================================\\
-
-	private class Interval {
-		public int beg;
-		public int end;
-	}
-
-	
-	
+		
 	//======================================= FIELDS =============================================\\
 
 	/** Processed sequence */
@@ -31,7 +23,7 @@ public class PatternDetector {
 	private PatternTree cpt;
 	
 	/** Accepted patterns intervals */
-	private List<Interval> interv;
+	private List<Interval<Integer>> interv;
 
 	/** Current minimum pattern length */
 	private int minPatLen;
@@ -51,7 +43,7 @@ public class PatternDetector {
 		len = sequence.size();
 		apt = new PatternTree(seq);
 		cpt = new PatternTree(seq);
-		interv = new ArrayList<Interval>();
+		interv = new ArrayList<Interval<Integer>>();
 		minPatLen = minPatternLength;
 		
 		try {
@@ -167,11 +159,11 @@ public class PatternDetector {
 
 	private boolean isACoveredPattern(int patBeg, int patEnd) {
 		boolean[] covered = new boolean[patEnd - patBeg];
-		for (Interval inter : interv) {
-			if (inter.end <= patBeg || inter.beg >= patEnd) {
+		for (Interval<Integer> inter : interv) {
+			if (inter.end() <= patBeg || inter.beg() >= patEnd) {
 				continue;
 			}
-			for (int i = Math.max(inter.beg, patBeg); i < Math.min(inter.end, patEnd); ++i) {
+			for (int i = Math.max(inter.beg(), patBeg); i < Math.min(inter.end(), patEnd); ++i) {
 				covered[i - patBeg] = true;
 			}
 			boolean allCovered = true;
@@ -192,10 +184,7 @@ public class PatternDetector {
 		apt.addOccurrences(subSeq, matches, new PatternDetector().detect(subSeq, minPatLen));
 		int seqLen = subSeq.size();
 		for (int matchBeg : matches) {
-			Interval interval = new Interval();
-			interval.beg = matchBeg;
-			interval.end = matchBeg + seqLen;
-			interv.add(interval);
+			interv.add(new Interval<Integer>(matchBeg, matchBeg + seqLen));
 		}
 	}
 

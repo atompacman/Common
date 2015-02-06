@@ -6,5 +6,7 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/ToolKat"/>
 	<classpathentry kind="lib" path="C:/Users/jeremie_coulombe/.m2/repository/org/json/json/20140107/json-20140107.jar"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/AtomLog"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/Configuana"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

@@ -63,12 +63,12 @@ public class CartesianPlanClustering implements Cmd<Klusterz, CPCFlag> {
 				Integer.toString(CPC.DEFAULT_MEAN_PT_SIZE_ON_IMG));
 			}},	
 		FINAL_IMAGE_SIZE_WIDTH 		{ public FlagInfo info() { return new FlagInfo(
-				"width", "Final image width", 1, 
+				"w", "Final image width", 1, 
 				"Define the length of the final width", 
 				Integer.toString(CPC.DEFAULT_IMG_WIDTH));
 			}},	
 		FINAL_IMAGE_SIZE_HEIGHT 	{ public FlagInfo info() { return new FlagInfo(
-				"height", "Final image height", 1, 
+				"h", "Final image height", 1, 
 				"Define the length of the final height", 
 				Integer.toString(CPC.DEFAULT_IMG_HEIGHT));
 			}};

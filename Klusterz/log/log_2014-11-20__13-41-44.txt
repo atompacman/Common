@@ -1,2 +1,0 @@
-============================== Image color segmentation application =============================
-Loading image at "data\test\TheVanOfLove.png".

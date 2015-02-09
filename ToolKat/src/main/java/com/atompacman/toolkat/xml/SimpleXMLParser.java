@@ -1,7 +1,5 @@
 package com.atompacman.toolkat.xml;
 
-import java.io.File;
-
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
@@ -12,6 +10,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import com.atompacman.toolkat.exception.Throw;
+import com.atompacman.toolkat.io.IO;
 
 public class SimpleXMLParser {
 
@@ -32,7 +31,7 @@ public class SimpleXMLParser {
 		try {
 			DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
 			DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-			Document doc = dBuilder.parse(new File(fileName));
+			Document doc = dBuilder.parse(IO.getFile(fileName));
 
 			currNode = doc.getFirstChild();
 			currStructNode = rootNodeStructure;

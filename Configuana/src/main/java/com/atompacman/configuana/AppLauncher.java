@@ -5,7 +5,6 @@ import java.io.FileNotFoundException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
@@ -99,7 +98,7 @@ public class AppLauncher {
 		File appConfigFile = null;
 		
 		try {
-			appConfigFile = IO.buildFile(appConfigFilePath);
+			appConfigFile = IO.getFile(appConfigFilePath);
 		} catch (FileNotFoundException e) {
 			Throw.aRuntime(AppLauncherException.class, "Could not find a Configuana"
 					+ "application configuration JSON file at \"" + appConfigFilePath + "\"");
@@ -139,7 +138,7 @@ public class AppLauncher {
 				Throw.aRuntime(AppLauncherException.class, "Environnement variable "
 						+ "\"" + CONFIGUANA_HOME_ENV_VAR + "\" is not set.");
 			}
-			File dir = IO.buildFile(value);
+			File dir = IO.getFile(value);
 			if (!dir.isDirectory()) {
 				Throw.aRuntime(AppLauncherException.class, "\"" + 
 						dir.getCanonicalPath() + "\" is not a directory");
@@ -211,7 +210,7 @@ public class AppLauncher {
 		try {
 			for (int i = 0; i < libsInfo.size(); ++i) {
 				libBinPath = libsInfo.get(i).getBinariesPath();
-				newUrls[urls.length + i] = IO.buildFile(libBinPath).toURI().toURL();
+				newUrls[urls.length + i] = IO.getFile(libBinPath).toURI().toURL();
 			}
 		} catch (Exception e) {
 			Throw.aRuntime(AppLauncherException.class, "Invalid URL \"" + libBinPath + "\"", e);
@@ -233,7 +232,7 @@ public class AppLauncher {
 		File libConfigFile = null;
 
 		try {
-			libConfigFile = IO.buildFile(libConfigFilePath);
+			libConfigFile = IO.getFile(libConfigFilePath);
 		} catch (FileNotFoundException e) {
 			Throw.aRuntime(AppLauncherException.class, "Could not found a Configuana "
 					+ "library configuration JSON file at \"" + libConfigFilePath + "\"");

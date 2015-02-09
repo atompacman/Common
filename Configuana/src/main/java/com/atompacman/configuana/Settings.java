@@ -2,6 +2,7 @@ package com.atompacman.configuana;
 
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.util.EnumMap;
@@ -16,6 +17,7 @@ import com.atompacman.configuana.param.Param;
 import com.atompacman.configuana.param.ParamWithDefault;
 import com.atompacman.configuana.param.StrictParam;
 import com.atompacman.toolkat.exception.Throw;
+import com.atompacman.toolkat.io.IO;
 
 public class Settings implements ReadOnlySettings {
 
@@ -143,12 +145,15 @@ public class Settings implements ReadOnlySettings {
 		try {
 			Properties parameters = new Properties();
 
-			File profile = new File(profileFilePath);
+			File profile = null;
 
-			if (!profile.exists()) {
-				String libConfigDir = new File(lib.getLibInfo().getConfigFilePath()).getParent();
-				profile = new File(libConfigDir + File.separator + profileFilePath);
-				if (!profile.exists()) {
+			try {
+				profile = IO.getFile(profileFilePath);
+			} catch (FileNotFoundException e) {
+				try {
+					String libConfigDir = IO.getFile(lib.getLibInfo().getConfigFilePath()).getParent();
+					profile = IO.getFile(libConfigDir, profileFilePath);
+				} catch (FileNotFoundException e1) {
 					Throw.aRuntime(AppLauncherException.class, "Could not found a Configuana "
 							+ "library configuration JSON file at \"" + profileFilePath + "\"");
 				}
@@ -326,10 +331,14 @@ public class Settings implements ReadOnlySettings {
 
 	public void saveFile(boolean canOverwrite) {
 		try {
-			File profileFile = new File(getProfileFilePath());
+			File profileFile = null;
 
-			if (profileFile.exists() && !canOverwrite) {
-				Throw.aRuntime(ConfiguanaException.class, "Overwritting is not allowed");
+			try {
+				profileFile = IO.getFile(getProfileFilePath());
+			} catch (FileNotFoundException e) {
+				if (!canOverwrite) {
+					Throw.aRuntime(ConfiguanaException.class, "Overwritting is not allowed");
+				}
 			}
 
 			BufferedWriter writer = new BufferedWriter(new FileWriter(profileFile));

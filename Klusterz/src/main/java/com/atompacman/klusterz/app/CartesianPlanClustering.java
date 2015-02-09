@@ -7,7 +7,6 @@ import java.awt.image.DataBuffer;
 import java.awt.image.WritableRaster;
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -31,6 +30,7 @@ import com.atompacman.klusterz.container.ClusteringPlan.InitialMeans;
 import com.atompacman.klusterz.container.Element;
 import com.atompacman.klusterz.container.KClass;
 import com.atompacman.toolkat.exception.Throw;
+import com.atompacman.toolkat.io.IO;
 
 public class CartesianPlanClustering implements Cmd<Klusterz, CPCFlag> {
 	
@@ -198,13 +198,7 @@ public class CartesianPlanClustering implements Cmd<Klusterz, CPCFlag> {
 		BufferedReader reader = null;
 
 		try {
-			File file = new File(cartPlanDescFile);
-
-			if (!file.exists()) {
-				throw new FileNotFoundException("No such file as \"" + file + "\".");
-			}
-
-			reader = new BufferedReader(new FileReader(file));
+			reader = new BufferedReader(new FileReader(IO.getFile(cartPlanDescFile)));
 			String line;
 
 			while ((line = reader.readLine()) != null) {
@@ -343,8 +337,8 @@ public class CartesianPlanClustering implements Cmd<Klusterz, CPCFlag> {
 		BufferedImage image = new BufferedImage(dim.width, dim.height, BufferedImage.TYPE_INT_RGB);
 		image.setData(raster);
 		
-		try {
-			ImageIO.write(image, "bmp", new File(resFilePath));
+		try {			
+			ImageIO.write(image, "bmp", new File(IO.getPath(resFilePath)));
 		} catch (IOException e) {
 			Throw.a(ClusteringAppException.class, "Could not write final image", e);
 		}

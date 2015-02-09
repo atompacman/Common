@@ -12,7 +12,7 @@ public class TextFileReader {
 	//==================================== STATIC METHODS ========================================\\
 
 	public static List<String> read(String filePath) throws IOException {
-		return read(IO.buildFile(filePath));
+		return read(IO.getFile(filePath));
 	}
 	
 	public static List<String> read(File file) throws IOException {
@@ -35,7 +35,7 @@ public class TextFileReader {
 	}
 	
 	public static String readAsSingleLine(String filePath) throws IOException {
-		return readAsSingleLine(IO.buildFile(filePath));
+		return readAsSingleLine(IO.getFile(filePath));
 	}
 	
 	public static String readAsSingleLine(File file) throws IOException {

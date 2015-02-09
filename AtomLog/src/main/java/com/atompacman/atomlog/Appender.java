@@ -2,7 +2,6 @@ package com.atompacman.atomlog;
 
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 
@@ -31,7 +30,7 @@ public class Appender {
 
 	 Appender(String logFileDir, Verbose minimalVerbose, boolean appendDateToFileName) {
 		try {
-			File logDirectory = IO.buildFile(logFileDir);
+			File logDirectory = IO.getFile(logFileDir);
 			
 			StringBuilder builder = new StringBuilder();
 			builder.append(logDirectory);

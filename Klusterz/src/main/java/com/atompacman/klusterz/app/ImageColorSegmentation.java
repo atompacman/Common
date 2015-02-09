@@ -4,7 +4,6 @@ import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBuffer;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.List;
 
@@ -24,6 +23,7 @@ import com.atompacman.klusterz.container.ClusteringPlan.Algorithm;
 import com.atompacman.klusterz.container.ClusteringPlan.InitialMeans;
 import com.atompacman.klusterz.container.Element;
 import com.atompacman.klusterz.container.KClass;
+import com.atompacman.toolkat.io.IO;
 
 public class ImageColorSegmentation implements Cmd<Klusterz, ICSFlag> {
 	
@@ -96,7 +96,13 @@ public class ImageColorSegmentation implements Cmd<Klusterz, ICSFlag> {
 		if (Log.infos() && Log.title("Image color segmentation application"));
 		
 		if (Log.infos() && Log.print("Loading image at \"" + inputFile + "\"."));
-		BufferedImage inputImage = loadInputImage(inputFile);
+		
+		BufferedImage inputImage;
+		try {
+			inputImage = ImageIO.read(IO.getFile(inputFile));
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
 		int nbPixels = inputImage.getWidth() * inputImage.getHeight();
 		
 		if (Log.infos() && Log.print("Reading pixels (" + nbPixels + " values)."));
@@ -114,18 +120,6 @@ public class ImageColorSegmentation implements Cmd<Klusterz, ICSFlag> {
 		if (Log.infos() && Log.print("Done."));
 		
 		return clusters;
-	}
-	
-	protected static BufferedImage loadInputImage(String inputFile) {
-		try {
-			File imageFile = new File(inputFile);
-			if (!imageFile.exists()) {
-				throw new FileNotFoundException("No such file as \"" + inputFile + "\".");
-			}
-			return ImageIO.read(imageFile);
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
 	}
 	
 	protected static Element[] readPixelElements(BufferedImage inputImage) {

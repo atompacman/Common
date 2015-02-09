@@ -6,20 +6,22 @@ import java.io.IOException;
 
 public class IO {
 
-	public static File buildFile(String...pathElem) throws FileNotFoundException {
-		if (pathElem == null) {
-			throw new IllegalArgumentException("Null file path elements.");
+	public static String getPath(String...pathElem) {
+		File file = buildInitFile(pathElem);
+		
+		for (int i = 1; i < pathElem.length; ++i) {
+			file = new File(file.getAbsolutePath(), pathElem[i]);
 		}
-		if (pathElem.length == 0) {
-			throw new IllegalArgumentException("File path elements cannot be null.");
-		}
-		File file = new File(pathElem[0]);
+		return file.getAbsolutePath();
+	}
+	
+	public static File getFile(String...pathElem) throws FileNotFoundException {
+		File file = buildInitFile(pathElem);
 
 		try {
 			for (int i = 1; i < pathElem.length; ++i) {
 				file = new File(file.getCanonicalPath(), pathElem[i]);
 			}
-			
 			file = file.getCanonicalFile();
 			
 			if (!file.exists()) {
@@ -29,7 +31,16 @@ public class IO {
 		} catch (IOException e) {
 			throw new FileNotFoundException();
 		}
-		
 		return file;
+	}
+	
+	private static File buildInitFile(String...pathElem) {
+		if (pathElem == null) {
+			throw new IllegalArgumentException("Null file path elements.");
+		}
+		if (pathElem.length == 0) {
+			throw new IllegalArgumentException("File path elements cannot be null.");
+		}
+		return new File(pathElem[0]);
 	}
 }

@@ -1,10 +1,12 @@
 package com.atompacman.toolkat.test;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.HashMap;
 import java.util.Map;
 
 import com.atompacman.toolkat.exception.Throw;
+import com.atompacman.toolkat.io.IO;
 
 /**
  * <h1> Tool to find test file paths </h1>
@@ -173,8 +175,9 @@ public class TestFileDetector {
 		String directory = testDirectory + File.separator + packagePath;
 
 		File currDir = new File(directory);
-
-		if (!currDir.exists()) {
+		try {
+			currDir = IO.getFile(directory);
+		} catch (FileNotFoundException e) {
 			Throw.aRuntime(TestFileDetectorException.class, "Test file "
 					+ "directory \"" + currDir + "\" does not exist");
 		}

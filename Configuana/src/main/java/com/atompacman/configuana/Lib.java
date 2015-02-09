@@ -1,6 +1,5 @@
 package com.atompacman.configuana;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -131,7 +130,7 @@ public abstract class Lib {
 		List<String> settingsProfilePaths = new ArrayList<>();
 		for (String settingsProfileFilePath : info.settingsProfileNames) {
 			try {
-				String fullPath = IO.buildFile(settingsProfileFilePath).getAbsolutePath();
+				String fullPath = IO.getFile(settingsProfileFilePath).getAbsolutePath();
 				settingsProfilePaths.add(fullPath);
 				addSettingsProfile(fullPath, true);
 			} catch (Exception e) {

@@ -1,6 +1,7 @@
 package com.atompacman.configuana;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -17,6 +18,7 @@ import org.json.JSONObject;
 
 import com.atompacman.configuana.Lib.LibInfo;
 import com.atompacman.toolkat.exception.Throw;
+import com.atompacman.toolkat.io.IO;
 import com.atompacman.toolkat.io.TextFileReader;
 
 public class AppLauncher {
@@ -41,6 +43,8 @@ public class AppLauncher {
 	private static final String LIB_CONFIG_FILE_SETTINGS_PROFILES_FIELD = "profiles";
 	private static final String LIB_CONFIG_FILE_DEFAULT_PROFILE_FIELD  	= "default profile";
 
+	// Other
+	private static final String CONFIGUANA_HOME_ENV_VAR					= "Configuana";
 
 
 	//==================================== STATIC METHODS ========================================\\
@@ -89,14 +93,18 @@ public class AppLauncher {
 		app.shutdownApp();
 	}
 
-	private static App createApp(String appConfigFilePath) {
-		File appConfigFile = new File(appConfigFilePath);
+	public static App createApp(String appConfigFilePath) {
+		setConfiguanaEnvVar();
 
-		if (!appConfigFile.exists()) {
-			Throw.aRuntime(AppLauncherException.class, "Could not found a Configuana"
+		File appConfigFile = null;
+		
+		try {
+			appConfigFile = IO.buildFile(appConfigFilePath);
+		} catch (FileNotFoundException e) {
+			Throw.aRuntime(AppLauncherException.class, "Could not find a Configuana"
 					+ "application configuration JSON file at \"" + appConfigFilePath + "\"");
 		}
-
+		
 		String appName 					= null;
 		String appVersion 				= null;
 		String mainLibConfigFile 		= null;
@@ -124,24 +132,43 @@ public class AppLauncher {
 				appConfigFilePath, otherLibConfigFiles);
 	}
 
+	private static void setConfiguanaEnvVar() {
+		try {
+			String value = System.getenv(CONFIGUANA_HOME_ENV_VAR);
+			if (value == null) {
+				Throw.aRuntime(AppLauncherException.class, "Environnement variable "
+						+ "\"" + CONFIGUANA_HOME_ENV_VAR + "\" is not set.");
+			}
+			File dir = IO.buildFile(value);
+			if (!dir.isDirectory()) {
+				Throw.aRuntime(AppLauncherException.class, "\"" + 
+						dir.getCanonicalPath() + "\" is not a directory");
+			}
+			System.setProperty("user.dir", value);
+		} catch (Exception e) {
+			Throw.aRuntime(AppLauncherException.class, "Could not "
+					+ "set Configuana working directory", e);
+		}
+	}
+
 	@SuppressWarnings("unchecked")
 	private static <A extends App> A createApp(String appName, 
-											   String appVersion, 
-											   String mainLibConfigFile, 
-											   String appConfigFilePath,
-											   Set<String> otherLibConfigFiles) {
+			String appVersion, 
+			String mainLibConfigFile, 
+			String appConfigFilePath,
+			Set<String> otherLibConfigFiles) {
 
 		List<LibInfo> libsInfo = new ArrayList<>();
-		
+
 		for (String libConfigFilePath : otherLibConfigFiles) {
 			libsInfo.add(parseLibInfo(libConfigFilePath));
 		}
 		libsInfo.add(parseLibInfo(mainLibConfigFile));
-		
+
 		addURLToClassLoader(libsInfo);
-		
+
 		List<Lib> libs = new ArrayList<>();
-		
+
 		for (LibInfo info : libsInfo) {
 			libs.add(createLib(info));
 		}
@@ -174,22 +201,22 @@ public class AppLauncher {
 		} catch (Exception e) {
 			throw new RuntimeException("Classloader must be a URLClassLoader.");
 		}
-		
+
 		URL[] urls = classLoader.getURLs();
 		URL[] newUrls = new URL[urls.length + libsInfo.size()];
 		System.arraycopy(urls, 0, newUrls, 0, urls.length);
-		
+
 		String libBinPath = null;
-		
+
 		try {
 			for (int i = 0; i < libsInfo.size(); ++i) {
 				libBinPath = libsInfo.get(i).getBinariesPath();
-				newUrls[urls.length + i] = new File(libBinPath).toURI().toURL();
+				newUrls[urls.length + i] = IO.buildFile(libBinPath).toURI().toURL();
 			}
-		} catch (MalformedURLException e) {
+		} catch (Exception e) {
 			Throw.aRuntime(AppLauncherException.class, "Invalid URL \"" + libBinPath + "\"", e);
 		}
-		
+
 		classLoader = new URLClassLoader(newUrls);
 		Thread.currentThread().setContextClassLoader(classLoader);
 	}
@@ -203,16 +230,18 @@ public class AppLauncher {
 	}
 
 	private static LibInfo parseLibInfo(String libConfigFilePath) {
-		File libConfigFile = new File(libConfigFilePath);
+		File libConfigFile = null;
 
-		if (!libConfigFile.exists()) {
-			Throw.aRuntime(AppLauncherException.class, "Could not found a Configuana"
+		try {
+			libConfigFile = IO.buildFile(libConfigFilePath);
+		} catch (FileNotFoundException e) {
+			Throw.aRuntime(AppLauncherException.class, "Could not found a Configuana "
 					+ "library configuration JSON file at \"" + libConfigFilePath + "\"");
 		}
-		
+
 		LibInfo info = new LibInfo();
 		info.setConfigFilePath(libConfigFilePath);
-		
+
 		try {
 			String jsonFileContent = TextFileReader.readAsSingleLine(libConfigFile);
 
@@ -231,10 +260,10 @@ public class AppLauncher {
 			Throw.aRuntime(AppLauncherException.class, "Failed to parse JSON library "
 					+ "configuration file at \"" + libConfigFilePath + "\"", e);
 		}
-		
+
 		return info;
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	private static <L extends Lib> L createLib(LibInfo info) {
 		Class<?> clazz = null;
@@ -253,11 +282,11 @@ public class AppLauncher {
 			Throw.aRuntime(AppLauncherException.class, "Invalid "+ Lib.class.getSimpleName() 
 					+ " class \"" + info.getLibClassName() + "\"", e);
 		}
-		
+
 		L lib = (L) createInstance(clazz);
 		lib.setLibInfo(info);
 		lib.init();
-		
+
 		return lib;
 	}
 
@@ -427,6 +456,7 @@ public class AppLauncher {
 		}
 		Throw.aRuntime(AppLauncherException.class, "No flag with console name \"" + 
 				consoleFlag + "\" defined for Flag class \"" + flagClass.getSimpleName() + "\"");
+		
 		return null;
 	}
 }

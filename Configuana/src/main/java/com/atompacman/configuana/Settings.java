@@ -149,7 +149,7 @@ public class Settings implements ReadOnlySettings {
 				String libConfigDir = new File(lib.getLibInfo().getConfigFilePath()).getParent();
 				profile = new File(libConfigDir + File.separator + profileFilePath);
 				if (!profile.exists()) {
-					Throw.aRuntime(AppLauncherException.class, "Could not found a Configuana"
+					Throw.aRuntime(AppLauncherException.class, "Could not found a Configuana "
 							+ "library configuration JSON file at \"" + profileFilePath + "\"");
 				}
 			}

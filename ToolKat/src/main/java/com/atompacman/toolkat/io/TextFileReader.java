@@ -11,38 +11,49 @@ public class TextFileReader {
 
 	//==================================== STATIC METHODS ========================================\\
 
-	public static String readAsSingleLine(String filePath) throws IOException {
-		return readAsSingleLine(new File(filePath));
-	}
-
 	public static List<String> read(String filePath) throws IOException {
-		return read(new File(filePath));
+		return read(IO.buildFile(filePath));
+	}
+	
+	public static List<String> read(File file) throws IOException {
+		List<String> lines = new ArrayList<String>();
+		BufferedReader in = null;
+		try {
+			in = new BufferedReader(new FileReader(file));
+			
+			String line = in.readLine();
+			while (line != null) {
+				lines.add(line.trim());
+				line = in.readLine();
+			}
+		} finally {
+			if (in != null) {
+				in.close();
+			}
+		}
+		return lines;
+	}
+	
+	public static String readAsSingleLine(String filePath) throws IOException {
+		return readAsSingleLine(IO.buildFile(filePath));
 	}
 	
 	public static String readAsSingleLine(File file) throws IOException {
-		List<String> lines = read(file);
 		StringBuilder builder = new StringBuilder();
-
-		for (String line : lines) {
-			builder.append(line);
-			builder.append(' ');
+		BufferedReader in = null;
+		try {
+			in = new BufferedReader(new FileReader(file));
+			
+			String line = in.readLine();
+			while (line != null) {
+				builder.append(line.trim());
+				line = in.readLine();
+			}
+		} finally {
+			if (in != null) {
+				in.close();
+			}
 		}
-		
 		return builder.toString();
-	}
-
-	public static List<String> read(File file) throws IOException {
-		List<String> lines = new ArrayList<String>();
-		BufferedReader in = new BufferedReader(new FileReader(file));	
-		String line = in.readLine();
-
-		while (line != null) {
-			lines.add(line.trim());
-			line = in.readLine();
-		}
-
-		in.close();
-
-		return lines;
 	}
 }

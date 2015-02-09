@@ -10,6 +10,7 @@ import java.util.Set;
 
 import com.atompacman.configuana.param.Param;
 import com.atompacman.toolkat.exception.Throw;
+import com.atompacman.toolkat.io.IO;
 
 public abstract class Lib {
 
@@ -130,15 +131,15 @@ public abstract class Lib {
 		List<String> settingsProfilePaths = new ArrayList<>();
 		for (String settingsProfileFilePath : info.settingsProfileNames) {
 			try {
-				String fullPath = new File(settingsProfileFilePath).getAbsolutePath();
+				String fullPath = IO.buildFile(settingsProfileFilePath).getAbsolutePath();
 				settingsProfilePaths.add(fullPath);
 				addSettingsProfile(fullPath, true);
-			} catch (AppLauncherException e) {
+			} catch (Exception e) {
 				Throw.aRuntime(AppLauncherException.class, "Failed to add settings profile \"" 
 						+ settingsProfileFilePath + "\" to library \"" + info.name + "\"", e);
 			}
 		}
-		info.setDefaultProfileName(new File(info.defaultProfileName).getAbsolutePath());
+		info.setDefaultProfileName(info.defaultProfileName);
 		info.setSettingsProfileNames(settingsProfilePaths);
 	}
 	

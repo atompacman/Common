@@ -14,7 +14,7 @@ public class Log extends Lib {
 	//====================================== CONSTANTS ===========================================\\
 		
 	private static final int  	CLASSNAME_LENGTH 		= 38;
-	private static final char 	CLASSNAME_FILLER_CHAR	= '=';
+	private static final char 	CLASSNAME_FILLER_CHAR	= '·';
 
 	private static final int  	TITLE_LINE_LENGTH 		= 97;
 	private static final char 	TITLE_LINE_CHAR 		= '=';
@@ -52,27 +52,40 @@ public class Log extends Lib {
 				throw new RuntimeException("Already initialized.");
 			}
 			initialized = true;
+			calledVerbose = Verbose.EXTRA;
+			appenders = new ArrayList<>();
+
+			Verbose consoleVerbose, logVerbose;
+			boolean writeLog, appendDateToLogFile;
+			String logDir;
 			
 			if (getLoadedSettingsProfileNames().size() == 0) {
-				throw new RuntimeException("No settings profile loaded.");
+				Log.print("No settings profile loaded. Using default settings.");
+				consoleVerbose 		= (Verbose) Parameters.CONSOLE_VERBOSE.defaultValue();
+				writeLog 	   		= (boolean) Parameters.WRITE_LOG_FILE.defaultValue();
+				logVerbose			= (Verbose) Parameters.LOG_FILE_VERBOSE.defaultValue();
+				logDir 				= (String)  Parameters.LOG_DIRECTORY.defaultValue();
+				appendDateToLogFile	= (boolean) Parameters.APPEND_DATE_TO_LOG_FILE.defaultValue();
+			} else {
+				Settings settings = getDefaultProfile();
+				consoleVerbose 		= Verbose.valueOf(
+						settings.getString(Parameters.CONSOLE_VERBOSE));
+				writeLog 	   		= settings.getBoolean(Parameters.WRITE_LOG_FILE);
+				logVerbose			= Verbose.valueOf(
+						settings.getString(Parameters.LOG_FILE_VERBOSE));
+				logDir 				= settings.getString(Parameters.LOG_DIRECTORY);
+				appendDateToLogFile	= settings.getBoolean(Parameters.APPEND_DATE_TO_LOG_FILE);
+				
+				if (getLoadedSettingsProfileNames().size() > 1) {
+					if (Log.warng() && Log.print("More than one settings "
+							+ "profile loaded: Arbitrary selecting one."));
+				}
 			}
 
-			Settings settings = getDefaultProfile();
-					
-			minimalVerbose = Verbose.valueOf(settings.getString(Parameters.CONSOLE_VERBOSE));
-			calledVerbose = Verbose.OFF;
-			appenders = new ArrayList<>();
+			minimalVerbose = consoleVerbose;
 			
-			if (settings.getBoolean(Parameters.WRITE_LOG_FILE)) {
-				String dir = settings.getString(Parameters.LOG_DIRECTORY);
-				Verbose verbose = Verbose.valueOf(settings.getString(Parameters.LOG_FILE_VERBOSE));
-				boolean appendDate = settings.getBoolean(Parameters.APPEND_DATE_TO_LOG_FILE);
-				addAppender(dir, verbose, appendDate);
-			}
-			
-			if (getLoadedSettingsProfileNames().size() > 1) {
-				if (Log.warng() && Log.print("More than one settings "
-						+ "profile loaded: Arbitrary selecting one."));
+			if (writeLog) {
+				addAppender(logDir, logVerbose, appendDateToLogFile);
 			}
 		} catch (Exception e) {
 			throw new RuntimeException("Cannot initialize Log: " + e.getMessage() + ".", e);
@@ -275,8 +288,6 @@ public class Log extends Lib {
 			throw new RuntimeException("Log cannot be used before its initialization.");
 		}
 	}
-
-
 
 
 	//--------------------------------------- SHUTDOWN -------------------------------------------\\

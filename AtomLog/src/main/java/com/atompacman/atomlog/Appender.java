@@ -7,6 +7,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 
 import com.atompacman.atomlog.Log.Verbose;
+import com.atompacman.toolkat.io.IO;
 
 public class Appender {
 
@@ -30,12 +31,8 @@ public class Appender {
 
 	 Appender(String logFileDir, Verbose minimalVerbose, boolean appendDateToFileName) {
 		try {
-			File logDirectory = new File(logFileDir);
-
-			if (!logDirectory.exists()) {
-				throw new FileNotFoundException("No such directory as \"" + logFileDir + "\".");
-			}
-
+			File logDirectory = IO.buildFile(logFileDir);
+			
 			StringBuilder builder = new StringBuilder();
 			builder.append(logDirectory);
 			builder.append(File.separator);

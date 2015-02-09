@@ -1,6 +1,5 @@
 package com.atompacman.configuana;
 
-import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
@@ -45,22 +44,15 @@ public final class CmdArgs<F extends Flag> {
 	}
 	
 	public String getValue(F flag) {
-		return getValues(flag).get(0);
+		List<String> values = getValues(flag);
+		return values.isEmpty() ? null : values.get(0);
 	}
 	
 	public List<String> getValues(F flag) {
-		List<String> values = flagValues.get(flag);
-		if (values == null) {
-			values = new ArrayList<String>();
-			flagValues.put(flag, values);
-		}
-		if (values.isEmpty()) {
-			values.add("");
-		}
-		return values;
+		return flagValues.get(flag);
 	}
 
 	public boolean hasFlag(F flag) {
-		return flagValues.containsKey(flag);
+		return !flagValues.get(flag).isEmpty();
 	}
 }

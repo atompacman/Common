@@ -68,11 +68,9 @@ public class Log extends Lib {
 				appendDateToLogFile	= (boolean) Parameters.APPEND_DATE_TO_LOG_FILE.defaultValue();
 			} else {
 				Settings settings = getDefaultProfile();
-				consoleVerbose 		= Verbose.valueOf(
-						settings.getString(Parameters.CONSOLE_VERBOSE));
+				consoleVerbose 	= Verbose.valueOf(settings.getString(Parameters.CONSOLE_VERBOSE));
 				writeLog 	   		= settings.getBoolean(Parameters.WRITE_LOG_FILE);
-				logVerbose			= Verbose.valueOf(
-						settings.getString(Parameters.LOG_FILE_VERBOSE));
+				logVerbose		= Verbose.valueOf(settings.getString(Parameters.LOG_FILE_VERBOSE));
 				logDir 				= settings.getString(Parameters.LOG_DIRECTORY);
 				appendDateToLogFile	= settings.getBoolean(Parameters.APPEND_DATE_TO_LOG_FILE);
 				

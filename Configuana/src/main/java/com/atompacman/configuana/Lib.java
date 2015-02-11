@@ -1,5 +1,6 @@
 package com.atompacman.configuana;
 
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -50,7 +51,11 @@ public abstract class Lib {
 		}
 		
 		void setDefaultProfileName(String defaultProfileName) {
-			this.defaultProfileName = defaultProfileName;
+			try {
+				this.defaultProfileName = IO.getFile(defaultProfileName).getPath();
+			} catch (FileNotFoundException e) {
+				Throw.aRuntime(AppLauncherException.class, "Default profile file not found", e);
+			}
 		}
 
 		void setLibClassName(String libClassName) {

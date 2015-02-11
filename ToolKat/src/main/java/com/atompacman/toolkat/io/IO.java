@@ -29,7 +29,11 @@ public class IO {
 						+ "\"" + file.getCanonicalPath() + "\".");
 			}
 		} catch (IOException e) {
-			throw new FileNotFoundException();
+			StringBuilder sb = new StringBuilder();
+			for (String elem : pathElem) {
+				sb.append(elem).append(File.separatorChar);
+			}
+			throw new FileNotFoundException("Cannot find file \"" + sb.toString() + "\".");
 		}
 		return file;
 	}

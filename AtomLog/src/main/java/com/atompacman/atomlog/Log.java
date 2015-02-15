@@ -106,37 +106,57 @@ public class Log extends Lib {
 	//---------------------------------------- PRINT ---------------------------------------------\\
 
 	public static boolean print(String message) {
-		processMessage(message);
+		processMessage(message, 0);
 		return true;
 	}
 	
 	public static boolean print(String format, Object... args) {
-		processMessage(String.format(format, args));
+		processMessage(String.format(format, args), 0);
 		return true;
 	}
 
+	public static boolean print(int stackTraceModifier, String format, Object... args) {
+		processMessage(String.format(format, args), stackTraceModifier);
+		return true;
+	}
+	
 	public static boolean title(String title) {
-		processMessage(generateTitle(title, 0));
+		processMessage(generateTitle(title, 0), 0);
+		return true;
+	}
+
+	public static boolean title(int stackTraceModifier, String title) {
+		processMessage(generateTitle(title, 0), stackTraceModifier);
 		return true;
 	}
 
 	public static boolean title(String title, int spacesBetweenDots) {
-		processMessage(generateTitle(title, spacesBetweenDots));
+		processMessage(generateTitle(title, spacesBetweenDots), 0);
+		return true;
+	}
+	
+	public static boolean title(int stackTraceModifier, String title, int spacesBetweenDots) {
+		processMessage(generateTitle(title, spacesBetweenDots), stackTraceModifier);
 		return true;
 	}
 
 	public static boolean line(int spacesBetweenDots) {
-		processMessage(generateTitle("", spacesBetweenDots));
+		processMessage(generateTitle("", spacesBetweenDots), 0);
+		return true;
+	}
+	
+	public static boolean line(int stackTraceModifier, int spacesBetweenDots) {
+		processMessage(generateTitle("", spacesBetweenDots), stackTraceModifier);
 		return true;
 	}
 
-	private static void processMessage(String message) {
+	private static void processMessage(String message, int stackTraceModifier) {
 		checkIfInit();
 		
 		StringBuilder builder = new StringBuilder();
 		builder.append(timestamp());
 		builder.append(' ');
-		builder.append(invokingClassName());
+		builder.append(invokingClassName(stackTraceModifier));
 		builder.append(" {");
 		builder.append(calledVerbose.name());
 		builder.append("} : ");
@@ -229,8 +249,9 @@ public class Log extends Lib {
 	
 	//------------------------------------ PRIVATE UTILS -----------------------------------------\\
 
-	private static String invokingClassName() {
-		StackTraceElement invokerStrackTrace = new Throwable().getStackTrace()[INVOKER_STACK_DEPTH];
+	private static String invokingClassName(int stackTraceModifier) {
+		int stackTraceMod = INVOKER_STACK_DEPTH + stackTraceModifier;
+		StackTraceElement invokerStrackTrace = new Throwable().getStackTrace()[stackTraceMod];
 		String fullStackTrace = invokerStrackTrace.toString(); 
 		String className = fullStackTrace.substring(
 				fullStackTrace.indexOf('('), fullStackTrace.indexOf(')') + 1);

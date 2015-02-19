@@ -149,7 +149,7 @@ public abstract class Lib {
 	
 	void addSettingsProfile(String profileFilePath, boolean existingFile) {
 		if (settingsProfiles.containsKey(profileFilePath)) {
-			Throw.aRuntime(ConfiguanaException.class, "Settings profile at \"" + 
+			Throw.aRuntime(AppLauncherException.class, "Settings profile at \"" + 
 					profileFilePath + "\" was already added to current lib config");
 		}
 
@@ -160,7 +160,7 @@ public abstract class Lib {
 					existingFile, this);
 		} catch (Exception e) {
 			String word = existingFile ? "add" : "create";
-			Throw.aRuntime(ConfiguanaException.class, "Could not " + word + 
+			Throw.aRuntime(AppLauncherException.class, "Could not " + word + 
 					" settings " + "profile file at \"" + profileFilePath + "\"", e);
 		}
 
@@ -185,8 +185,8 @@ public abstract class Lib {
 	public Settings getSettingsProfile(String profileName) {
 		Settings profile = settingsProfiles.get(profileName);
 		if (profile == null) {
-			Throw.aRuntime(ConfiguanaException.class, "There is not a setting profile "
-					+ "named \"" + profileName + "\" in current application configuration");
+			throw new IllegalArgumentException("There is not a setting profile named "
+					+ "\"" + profileName + "\" in current application configuration");
 		}
 		return profile;
 	}

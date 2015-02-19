@@ -65,27 +65,27 @@ public class Settings implements ReadOnlySettings {
 				if (ignoreUnrelatedInnerClasses) {
 					return;
 				} else {
-					Throw.aRuntime(ConfiguanaException.class, "Class does not "
+					Throw.aRuntime(AppLauncherException.class, "Class does not "
 							+ "implement an interface that extends ParameterSet");
 				}
 			}
 			Class<?>[] interfaces = paramSetClass.getInterfaces();
 
 			if (interfaces.length != 1) {
-				Throw.aRuntime(ConfiguanaException.class, "Class must "
+				Throw.aRuntime(AppLauncherException.class, "Class must "
 						+ "only implement one child interface of ParameterSet");
 			}
 			if (interfaces[0] == Param.class) {
-				Throw.aRuntime(ConfiguanaException.class, "Class "
+				Throw.aRuntime(AppLauncherException.class, "Class "
 						+ "cannot implement ParameterSet directly; it "
 						+ "must implements one of its child interfaces");
 			} else if (interfaces[0] == ParamWithDefault.class) {
-				Throw.aRuntime(ConfiguanaException.class, "Class "
+				Throw.aRuntime(AppLauncherException.class, "Class "
 						+ "cannot implement ParamSetWithDefault directly; it "
 						+ "must implements one of its child interfaces");
 			} 
 			if (!paramSetClass.isEnum()) {
-				Throw.aRuntime(ConfiguanaException.class, "Class must be an enum");
+				Throw.aRuntime(AppLauncherException.class, "Class must be an enum");
 			}
 
 			addParameterSet((Class<? extends Param>) paramSetClass);
@@ -93,8 +93,8 @@ public class Settings implements ReadOnlySettings {
 			for (Class<?> innerClass : paramSetClass.getDeclaredClasses()) {
 				addParameterSetClass(innerClass, true);
 			}
-		} catch (ConfiguanaException e) {
-			Throw.aRuntime(ConfiguanaException.class, "Could not add "
+		} catch (AppLauncherException e) {
+			Throw.aRuntime(AppLauncherException.class, "Could not add "
 					+ "parameter set class \"" + paramSetClass.getSimpleName() + 
 					"\" to settings profile \"" + getProfileName() + "\"", e);
 		}
@@ -105,7 +105,7 @@ public class Settings implements ReadOnlySettings {
 		String paramSetKey = paramSetKeyOf(paramSetClass);
 
 		if (paramValues.containsKey(paramSetKey)) {
-			Throw.aRuntime(ConfiguanaException.class, "Parameter "
+			Throw.aRuntime(AppLauncherException.class, "Parameter "
 					+ "set was already added to settings profile");
 		}
 
@@ -169,11 +169,11 @@ public class Settings implements ReadOnlySettings {
 
 			if (nbValuesSet != parameters.size()) {
 				int nbUnlinkedParams = parameters.size() - nbValuesSet;
-				Throw.aRuntime(ConfiguanaException.class, nbUnlinkedParams + " parameters"
+				Throw.aRuntime(AppLauncherException.class, nbUnlinkedParams + " parameters"
 						+ " in parameter file are not linked to valid settings");
 			}
 		} catch (Exception e) {
-			Throw.aRuntime(ConfiguanaException.class, "Error parsing parameter "
+			Throw.aRuntime(AppLauncherException.class, "Error parsing parameter "
 					+ "file at \"" + getProfileFilePath() + "\"", e);
 		}
 	}
@@ -192,15 +192,15 @@ public class Settings implements ReadOnlySettings {
 					if (param instanceof CustomParam) {
 						CustomParam apsParam = (CustomParam) param;
 						if (apsParam.isMandatory()) {
-							Throw.aRuntime(ConfiguanaException.class, "Advance parameter "
+							Throw.aRuntime(AppLauncherException.class, "Advance parameter "
 									+ "set to mandatory (isMandatory == true)");
 						}
 					} else if (param instanceof StrictParam) {
-						Throw.aRuntime(ConfiguanaException.class, "Parameter "
+						Throw.aRuntime(AppLauncherException.class, "Parameter "
 								+ "belongs to a StrictParameterSet");
 					}
-				} catch (ConfiguanaException e) {
-					Throw.aRuntime(ConfiguanaException.class, "Mandatory parameter "
+				} catch (AppLauncherException e) {
+					Throw.aRuntime(AppLauncherException.class, "Mandatory parameter "
 							+ "\"" + param + "\" was not found in parameter file", e);
 				}
 			} else {
@@ -220,18 +220,18 @@ public class Settings implements ReadOnlySettings {
 
 		try {
 			if (StrictParam.class.isAssignableFrom(paramSetClass)) {
-				Throw.aRuntime(ConfiguanaException.class, "Parameter belongs to a Strict"
+				Throw.aRuntime(AppLauncherException.class, "Parameter belongs to a Strict"
 						+ "ParameterSet, which does not allow the modification of its values");
 			}
 			if (CustomParam.class.isAssignableFrom(paramSetClass)) {
 				CustomParam apsParam = (CustomParam) param;
 				if (!apsParam.isModifiable()) {
-					Throw.aRuntime(ConfiguanaException.class, "Parameter "
+					Throw.aRuntime(AppLauncherException.class, "Parameter "
 							+ "is not modifiable (isModifiable() == false)");
 				}
 			}
-		} catch (ConfiguanaException e) {
-			Throw.aRuntime(ConfiguanaException.class, "Could not set the "
+		} catch (AppLauncherException e) {
+			Throw.aRuntime(AppLauncherException.class, "Could not set the "
 					+ "value of parameter \"" + param + "\" of class \"" + 
 					paramSetClass.getSimpleName() + "\" to \"" + newValue + "\"", e);
 		}
@@ -301,7 +301,7 @@ public class Settings implements ReadOnlySettings {
 	private Map<? extends Param, Object> getParamSetValuesMap(String paramSetKey) {
 		Map<? extends Param, Object> paramValueMap = paramValues.get(paramSetKey);
 		if (paramValueMap == null) {
-			Throw.aRuntime(ConfiguanaException.class, "Parameter set class of key "
+			Throw.aRuntime(AppLauncherException.class, "Parameter set class of key "
 					+ "\"" + paramSetKey + "\" was not added to settings profile");
 		}
 		return paramValueMap;
@@ -337,7 +337,7 @@ public class Settings implements ReadOnlySettings {
 				profileFile = IO.getFile(getProfileFilePath());
 			} catch (FileNotFoundException e) {
 				if (!canOverwrite) {
-					Throw.aRuntime(ConfiguanaException.class, "Overwritting is not allowed");
+					Throw.aRuntime(AppLauncherException.class, "Overwritting is not allowed");
 				}
 			}
 
@@ -359,7 +359,7 @@ public class Settings implements ReadOnlySettings {
 			writer.flush();
 			writer.close();
 		} catch (Exception e) {
-			Throw.aRuntime(ConfiguanaException.class, "Error saving settings "
+			Throw.aRuntime(AppLauncherException.class, "Error saving settings "
 					+ "profile to \"" + getProfileFilePath() + "\"", e);
 		}
 	}

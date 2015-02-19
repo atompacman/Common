@@ -141,13 +141,13 @@ public class CartesianPlanClustering implements Cmd<Klusterz, CPCFlag> {
 		resImgPtSize 	= Integer.parseInt(args.getValue(CPCFlag.PTS_SIZE_ON_FINAL_IMAGE));
 		resImgMeanSize 	= Integer.parseInt(args.getValue(CPCFlag.MEANS_SIZE_ON_FINAL_IMAGE));
 		
-		String cartesianPlanFile = args.getMainArgs().get(0);
+		String cartesianPlanDescPath = args.getMainArgs().get(0);
 		
 		try {
-			readCartesianPlanFile(cartesianPlanFile);
-		} catch (ClusteringAppException e) {
+			readCartesianPlanFile(IO.getFile(cartesianPlanDescPath));
+		} catch (Exception e) {
 			throw new RuntimeException("Could not read cartesian plan "
-					+ "file at \"" + cartesianPlanFile + "\".", e);
+					+ "file at \"" + cartesianPlanDescPath + "\".", e);
 		}
 		
 		// Cluster
@@ -165,8 +165,8 @@ public class CartesianPlanClustering implements Cmd<Klusterz, CPCFlag> {
 		int imgHeight = Integer.parseInt(args.getValue(CPCFlag.FINAL_IMAGE_SIZE_HEIGHT));
 		
 		try {
-			writeResultImage(outputFile, new Dimension(imgWidth, imgHeight));
-		} catch (ClusteringAppException e) {
+			writeResultImage(IO.getFile(outputFile), new Dimension(imgWidth, imgHeight));
+		} catch (Exception e) {
 			throw new RuntimeException("Could not save final image at \"" + outputFile + "\".", e);
 		}
 	}
@@ -174,14 +174,15 @@ public class CartesianPlanClustering implements Cmd<Klusterz, CPCFlag> {
 
 	//------------------------------- READ CARTESIAN PLAN FILE -----------------------------------\\
 
-	public void readCartesianPlanFile(String cartesianPlanDescFile) throws ClusteringAppException {
-		if (cartesianPlanDescFile == null) {
-			Throw.a(ClusteringAppException.class, CPDF + " path is null.");
+	public void readCartesianPlanFile(File cartesianPlanDesc) throws ClusteringAppException {
+		if (cartesianPlanDesc == null) {
+			Throw.a(ClusteringAppException.class, CPDF + " is null.");
 		}
 		
-		if (Log.infos() && Log.print("Reading " + CPDF + " at \"" + cartesianPlanDescFile + "\"."));
+		if (Log.infos() && Log.print("Reading " + CPDF + " at \"" + 
+				cartesianPlanDesc.getAbsolutePath() + "\"."));
 		
-		List<String> fileLines = readFileLines(cartesianPlanDescFile);
+		List<String> fileLines = readFileLines(cartesianPlanDesc);
 		try {
 			parseCartesianPlanLimits(fileLines);
 			parse2DPoints(fileLines);
@@ -193,12 +194,12 @@ public class CartesianPlanClustering implements Cmd<Klusterz, CPCFlag> {
 		planClustered = false;
 	}
 
-	private List<String> readFileLines(String cartPlanDescFile) throws ClusteringAppException {
+	private List<String> readFileLines(File cartesianPlanDesc) throws ClusteringAppException {
 		List<String> lines = new ArrayList<String>();
 		BufferedReader reader = null;
 
 		try {
-			reader = new BufferedReader(new FileReader(IO.getFile(cartPlanDescFile)));
+			reader = new BufferedReader(new FileReader(cartesianPlanDesc));
 			String line;
 
 			while ((line = reader.readLine()) != null) {
@@ -291,21 +292,17 @@ public class CartesianPlanClustering implements Cmd<Klusterz, CPCFlag> {
 
 	//---------------------------------- WRITE RESULT IMAGE --------------------------------------\\
 
-	public void writeResultImage(String resFilePath) throws ClusteringAppException {
-		writeResultImage(resFilePath, new Dimension(CPC.DEFAULT_IMG_WIDTH, CPC.DEFAULT_IMG_HEIGHT));
+	public void writeResultImage(File resImg) throws ClusteringAppException {
+		writeResultImage(resImg, new Dimension(CPC.DEFAULT_IMG_WIDTH, CPC.DEFAULT_IMG_HEIGHT));
 	}
 
-	public void writeResultImage(String resFilePath, Dimension dim) throws ClusteringAppException {
+	public void writeResultImage(File resImg, Dimension dim) throws ClusteringAppException {
 		if (!planClustered) {
 			Throw.a(ClusteringAppException.class, CP + " clustering must "
 					+ "be completed before writing result image.");
 		}
 		
-		if (resFilePath == null) {
-			Throw.a(ClusteringAppException.class, "Null output path.");
-		}
-		
-		if (Log.infos() && Log.print("Writing result image at \"" + resFilePath));
+		if (Log.infos() && Log.print("Writing result image at \"" + resImg.getAbsolutePath()));
 
 		WritableRaster raster = WritableRaster.createInterleavedRaster(
 				DataBuffer.TYPE_BYTE, dim.width, dim.height, 3, new Point(0,0));
@@ -338,7 +335,7 @@ public class CartesianPlanClustering implements Cmd<Klusterz, CPCFlag> {
 		image.setData(raster);
 		
 		try {			
-			ImageIO.write(image, "bmp", new File(IO.getPath(resFilePath)));
+			ImageIO.write(image, "bmp", resImg);
 		} catch (IOException e) {
 			Throw.a(ClusteringAppException.class, "Could not write final image", e);
 		}

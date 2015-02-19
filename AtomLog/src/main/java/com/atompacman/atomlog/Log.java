@@ -52,7 +52,7 @@ public class Log extends Lib {
 				throw new RuntimeException("Already initialized.");
 			}
 			initialized = true;
-			calledVerbose = Verbose.EXTRA;
+			calledVerbose = Verbose.INFOS;
 			appenders = new ArrayList<>();
 
 			Verbose consoleVerbose, logVerbose;
@@ -102,6 +102,13 @@ public class Log extends Lib {
 	
 	
 	//==================================== STATIC METHODS ========================================\\
+	
+	//-------------------------------------- INITIALIZE ------------------------------------------\\
+
+	public static void quickInit() {
+		new Log().init();
+	}
+	
 	
 	//---------------------------------------- PRINT ---------------------------------------------\\
 

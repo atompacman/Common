@@ -23,7 +23,6 @@ import com.atompacman.klusterz.container.ClusteringPlan.Algorithm;
 import com.atompacman.klusterz.container.ClusteringPlan.InitialMeans;
 import com.atompacman.klusterz.container.Element;
 import com.atompacman.klusterz.container.KClass;
-import com.atompacman.toolkat.io.IO;
 
 public class ImageColorSegmentation implements Cmd<Klusterz, ICSFlag> {
 	
@@ -58,55 +57,49 @@ public class ImageColorSegmentation implements Cmd<Klusterz, ICSFlag> {
 	//--------------------------------------- EXECUTE --------------------------------------------\\
 
 	public void execute(Klusterz app, CmdArgs<ICSFlag> args) {
-		String inputFile = args.getMainArgs().get(0);
-		String outputFile = args.getValue(ICSFlag.OUTPUT_IMAGE_PATH);
-		int nbClasses = Integer.parseInt(args.getMainArgs().get(1));
-		Algorithm algo = Algorithm.valueOf(args.getValue(ICSFlag.ALGORITHM));
-		InitialMeans initMeansSelect = InitialMeans.valueOf(
-				args.getValue(ICSFlag.INIT_MEANS_SELECTION));
-
-		segmentate(inputFile, outputFile, nbClasses, algo, initMeansSelect);
+		segmentate(new File(args.getMainArgs().get(0)), 
+				   new File(args.getValue(ICSFlag.OUTPUT_IMAGE_PATH)), 
+				   Integer.parseInt(args.getMainArgs().get(1)), 
+				   Algorithm.valueOf(args.getValue(ICSFlag.ALGORITHM)), 
+				   InitialMeans.valueOf(args.getValue(ICSFlag.INIT_MEANS_SELECTION)));
 	}
 	
 	
 	//------------------------------------- SEGMENTATE -------------------------------------------\\
 	
-	public static void segmentate(String inputFile, 
-								  String outputFile, 
-								  int nbClasses) {
-		
-		segmentate(inputFile, outputFile, nbClasses, DEFAULT_ALGORITHM, DEFAULT_INITIAL_MEANS);
+	public static void segmentate(File inImg,  File outImg, int nbClasses) {
+		segmentate(inImg, outImg, nbClasses, DEFAULT_ALGORITHM, DEFAULT_INITIAL_MEANS);
 	}
 	
-	public static void segmentate(String inputFile, 
-			  					  String outputFile, 
+	public static void segmentate(File inImg, 
+								  File outImg, 
 			  					  int nbClasses,
 			  					  Algorithm algorithm,
 			  					  InitialMeans initialMeans) {
 		
-		segmentateAndGetClusters(inputFile, outputFile, nbClasses, algorithm, initialMeans);
+		segmentateAndGetClusters(inImg, outImg, nbClasses, algorithm, initialMeans);
 	}
 	
-	protected static List<KClass> segmentateAndGetClusters(String inputFile, 
-								  						   String outputFile, 
+	protected static List<KClass> segmentateAndGetClusters(File inImg, 
+								  						   File outImg, 
 								  						   int nbClasses,
 								  						   Algorithm algorithm,
 								  						   InitialMeans initialMeans) {
 		
 		if (Log.infos() && Log.title("Image color segmentation application"));
 		
-		if (Log.infos() && Log.print("Loading image at \"" + inputFile + "\"."));
+		if (Log.infos() && Log.print("Loading image at \"" + inImg.getPath() + "\"."));
 		
-		BufferedImage inputImage;
+		BufferedImage referenceImg;
 		try {
-			inputImage = ImageIO.read(IO.getFile(inputFile));
+			referenceImg = ImageIO.read(inImg);
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
-		int nbPixels = inputImage.getWidth() * inputImage.getHeight();
+		int nbPixels = referenceImg.getWidth() * referenceImg.getHeight();
 		
 		if (Log.infos() && Log.print("Reading pixels (" + nbPixels + " values)."));
-		Element[] pixelElements = readPixelElements(inputImage);
+		Element[] pixelElements = readPixelElements(referenceImg);
 		
 		ClusteringPlan plan = new ClusteringPlan(algorithm, pixelElements, nbClasses, initialMeans);
 		plan.setDimensionsMinima(0, 3);
@@ -114,8 +107,8 @@ public class ImageColorSegmentation implements Cmd<Klusterz, ICSFlag> {
 
 		List<KClass> clusters = Klusterz.execute(plan);
 		
-		if (Log.infos() && Log.print("Writing clustered image at \"" + outputFile + "\"."));
-		writeClusteredImage(clusters, inputImage, outputFile);
+		if (Log.infos() && Log.print("Writing clustered image at \"" + outImg.getPath() + "\"."));
+		writeClusteredImage(clusters, referenceImg, outImg);
 		
 		if (Log.infos() && Log.print("Done."));
 		
@@ -140,13 +133,9 @@ public class ImageColorSegmentation implements Cmd<Klusterz, ICSFlag> {
 	}
 
 	protected static void writeClusteredImage(List<KClass> clusters, 
-			BufferedImage inputImage, String outputFile) {
+			BufferedImage clusteredImg, File outImg) {
 		
-		if (outputFile == null) {
-			throw new NullPointerException("Null output path.");
-		}
-		
-		int width = inputImage.getWidth();
+		int width = clusteredImg.getWidth();
 		
 		for (KClass kClass : clusters) {
 			double[] components = kClass.mean.components;
@@ -155,12 +144,12 @@ public class ImageColorSegmentation implements Cmd<Klusterz, ICSFlag> {
 					(int) components[2]).getRGB();
 
 			for (Integer pixelIndex : kClass.elementsIndex) {
-				inputImage.setRGB(pixelIndex % width, pixelIndex / width, hexRGB);
+				clusteredImg.setRGB(pixelIndex % width, pixelIndex / width, hexRGB);
 			}
 		}
 		
 		try {
-			ImageIO.write(inputImage, "bmp", new File(outputFile));
+			ImageIO.write(clusteredImg, "bmp", outImg);
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}

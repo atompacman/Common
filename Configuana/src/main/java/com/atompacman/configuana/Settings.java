@@ -29,9 +29,9 @@ public class Settings implements ReadOnlySettings {
 
 	//======================================= FIELDS =============================================\\
 
-	private final String 									profileFilePath;
+	private final String profileFilePath;
 	private final Map<String, Map<? extends Param, Object>> paramValues;
-	private final Lib										lib;
+	private final Lib lib;
 
 
 	//======================================= METHODS ============================================\\

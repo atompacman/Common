@@ -4,10 +4,10 @@ public class CmdInfo {
 	
 	//======================================= FIELDS =============================================\\
 
-	private String 		 consoleName;
-	private String 		 fullName;
-	private int	   		 numMainArgs;
-	private String 		 description;
+	private String consoleName;
+	private String fullName;
+	private int	   numMainArgs;
+	private String description;
 	
 	
 	

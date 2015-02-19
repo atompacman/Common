@@ -102,9 +102,9 @@ public abstract class Lib {
 	
 	//======================================= FIELDS =============================================\\
 
-	private LibInfo 					info;
-	private Map<String, Settings> 	  	settingsProfiles;
-	private App					  		parentApp;
+	private LibInfo info;
+	private Map<String, Settings> settingsProfiles;
+	private App	parentApp;
 
 	
 

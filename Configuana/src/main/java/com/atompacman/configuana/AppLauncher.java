@@ -100,7 +100,7 @@ public class AppLauncher {
 		try {
 			appConfigFile = IO.getFile(appConfigFilePath);
 		} catch (FileNotFoundException e) {
-			Throw.aRuntime(AppLauncherException.class, "Could not find a Configuana"
+			Throw.aRuntime(AppLauncherException.class, "Could not find a Configuana "
 					+ "application configuration JSON file at \"" + appConfigFilePath + "\"");
 		}
 		

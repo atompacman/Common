@@ -1,10 +1,8 @@
 package com.atompacman.configuana;
 
 import org.junit.BeforeClass;
-import org.junit.Test;
 
 import com.atompacman.toolkat.test.AbstractTest;
-import com.atompacman.toolkat.test.TextInputForExpecMsgBasedTest;
 
 public class TestConsoleAppLauncher extends AbstractTest {
 		
@@ -26,16 +24,16 @@ public class TestConsoleAppLauncher extends AbstractTest {
 	
 	//====================================== UNIT TESTS ==========================================\\
 
-	@Test
-	public void detectProblemsInInvalidCmdLines() {
-		new TextInputForExpecMsgBasedTest() {
-			public void launchTest(String testInput) {
-				if (testInput.isEmpty()) {
-					AppLauncher.main(new String[0]);
-				} else {
-					AppLauncher.main(testInput.replace('_', ' ').split(" "));
-				}
-			}
-		}.launchTestList();
-	}
+//	@Test
+//	public void detectProblemsInInvalidCmdLines() {
+//		new TextInputForExpecMsgBasedTest() {
+//			public void launchTest(String testInput) {
+//				if (testInput.isEmpty()) {
+//					AppLauncher.main(new String[0]);
+//				} else {
+//					AppLauncher.main(testInput.replace('_', ' ').split(" "));
+//				}
+//			}
+//		}.launchTestList();
+//	}
 }

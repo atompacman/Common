@@ -49,7 +49,9 @@ public class Log extends Lib {
 	public void init() {
 		try {
 			if (initialized) {
-				throw new RuntimeException("Already initialized.");
+				calledVerbose = Verbose.WARNG;
+				Log.print("Log was already initialized.");
+				return;
 			}
 			initialized = true;
 			calledVerbose = Verbose.INFOS;

@@ -40,7 +40,7 @@ public class TestCartesianPlanClustering extends AbstractTest {
 		for (int i = 0; i < 5; ++i) {
 			cpc.cluster(5);
 			
-			File resImg = IO.getFile(testDir, "completeTest_" + i + ".png");
+			File resImg = new File(testDir, "completeTest_" + i + ".png");
 			cpc.writeResultImage(resImg, new Dimension(300, 300));
 			resImg.delete();
 		}

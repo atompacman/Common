@@ -1,39 +1,33 @@
 package com.atompacman.klusterz.app;
 
-import static org.junit.Assert.assertEquals;
-
-import java.io.File;
-import java.util.List;
-
+import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.atompacman.atomlog.Log;
+import com.atompacman.klusterz.Parameters.Paths;
 import com.atompacman.klusterz.container.ClusteringPlan.Algorithm;
 import com.atompacman.klusterz.container.ClusteringPlan.InitialMeans;
-import com.atompacman.klusterz.container.KClass;
+import com.atompacman.toolkat.io.IO;
+import com.atompacman.toolkat.test.AbstractTest;
 
-public class TestImageColorSegmentation {
+public class TestImageColorSegmentation extends AbstractTest  {
 
-	private static final String TEST_DIRECTORY = "data" + File.separator + "test" + File.separator;
-		
+	//===================================== BEFORE CLASS =========================================\\
+
+	@BeforeClass
+	public static void beforeClass() {
+		new Log().init();
+		detectTestDirectory(Paths.TEST_DIRECTORY, Paths.APP_PACKAGE);
+	}
+
+
+
+	//================================== FUNCTIONNAL TESTS =======================================\\
+
 	@Test
-	public void assertConsistency() {
-		String testFileName = TEST_DIRECTORY + "TheVanOfLove.png";
-		List<KClass> a = null;
-		List<KClass> b = null;
-		
-		try {
-			a = ImageColorSegmentation.segmentateAndGetClusters(
-					testFileName, "salut.bmp", 4, Algorithm.K_MEANS, InitialMeans.RANDOM);
-		} catch (NullPointerException e) {
-			
-		}
-		try {
-			b = ImageColorSegmentation.segmentateAndGetClusters(
-					testFileName, null, 10, Algorithm.K_MEANS, InitialMeans.RANDOM);
-			
-		} catch (NullPointerException e) {
-			
-		}		
-		assertEquals(a, b);
+	public void completeTest() {
+		ImageColorSegmentation.segmentateAndGetClusters(IO.getPath(testDir, "Jellyfish.jpg"), 
+				IO.getPath(testDir, "Jellyseg.jpg"), 4, Algorithm.K_MEANS, InitialMeans.RANDOM);
+
 	}
 }

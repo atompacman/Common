@@ -8,9 +8,10 @@ import com.atompacman.configuana.param.StrictParam;
 public enum Parameters implements StrictParam {;
 
 	public static class Paths {
-		public static final String 	TEST_DIRECTORY 		= "test" 	+ File.separator;
-		public static final String 	RESULTS_DIRECTORY 	= "results" + File.separator; 
-		public static final String 	LOG_FILES_DIRECTORY = "log" 	+ File.separator; 
+		public static final String TEST_DIRECTORY 		= "test" 	+ File.separator;
+		public static final String RESULTS_DIRECTORY 	= "results" + File.separator; 
+		public static final String LOG_FILES_DIRECTORY	= "log" 	+ File.separator; 
+		public static final String APP_PACKAGE			= "com.atompacman.klusterz";
 	}
 	
 	public static class CPC {

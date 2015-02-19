@@ -7,15 +7,10 @@ import java.util.Map;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.atompacman.toolkat.io.IO;
 import com.atompacman.toolkat.test.TestFileDetector;
 
 public class TestTestFileDetector extends AbstractTest {
-
-	//==================================== STATIC FIELDS =========================================\\
-
-	private static final String TEST_DIR = "test\\test\\TestTestFileDetector";
-
-
 
 	//===================================== BEFORE CLASS =========================================\\
 
@@ -23,6 +18,7 @@ public class TestTestFileDetector extends AbstractTest {
 	public static void prepareTestClass() {
 		TestFileDetector.setPackagePathToRemove("com.atompacman.toolkat");
 		TestFileDetector.setTestDirectory("test");
+		testDir = IO.getPath("test", "test", "TestTestFileDetector");
 	}
 
 
@@ -32,26 +28,26 @@ public class TestTestFileDetector extends AbstractTest {
 	@Test
 	public void singleFile() {
 		String path = TestFileDetector.detectSingleFileForCurrentTest();
-		assertEquals(TEST_DIR + "\\singleFile.txt", path);
+		assertEquals(IO.getPath(testDir, "singleFile.txt"), path);
 	}
 
 	@Test
 	public void fileDoesntExists() {
 		expect("No test files with name beginning by \"fileDoesntExists\" " 
-				+ "in directory \"" + TEST_DIR + "\".");
+				+ "in directory \"" + testDir + "\".");
 		TestFileDetector.detectSingleFileForCurrentTest();
 	}
 
 	@Test
 	public void multipleFiles() {
 		Map<String, String> testFilePath = TestFileDetector.detectAllFilesForCurrentTest();
-		assertEquals(TEST_DIR + "\\multipleFiles-first.cpp", testFilePath.get("first"));
-		assertEquals(TEST_DIR + "\\multipleFiles-second.txt", testFilePath.get("second"));
+		assertEquals(IO.getPath(testDir, "multipleFiles-first.cpp"), testFilePath.get("first"));
+		assertEquals(IO.getPath(testDir, "multipleFiles-second.txt"), testFilePath.get("second"));
 	}
 
 	@Test
 	public void detectIdenticalNames() {
-		expect("Multiple test files with name \"detectIdenticalNames\" in \"" + TEST_DIR + "\".");
+		expect("Multiple test files with name \"detectIdenticalNames\" in \"" + testDir + "\".");
 		TestFileDetector.detectAllFilesForCurrentTest();
 	}
 
@@ -64,13 +60,13 @@ public class TestTestFileDetector extends AbstractTest {
 	@Test
 	public void wrongDelimiter() {
 		expect("No test files with name beginning by \"wrongDelimiter\""
-				+ " in directory \"" + TEST_DIR + "\".");
+				+ " in directory \"" + testDir + "\".");
 		TestFileDetector.detectAllFilesForCurrentTest();
 	}
 
 	@Test
 	public void moreThanOneFile() {
-		expect("Multiple test files with name \"moreThanOneFile\" in \"" + TEST_DIR + "\".");
+		expect("Multiple test files with name \"moreThanOneFile\" in \"" + testDir + "\".");
 		TestFileDetector.detectSingleFileForCurrentTest();
 	}
 }

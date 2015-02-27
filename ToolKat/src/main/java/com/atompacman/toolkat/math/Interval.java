@@ -1,6 +1,6 @@
 package com.atompacman.toolkat.math;
 
-public class Interval<T> {
+public class Interval<T extends Comparable<T>> {
 
 	//======================================= FIELDS =============================================\\
 
@@ -27,5 +27,12 @@ public class Interval<T> {
 	
 	public T end() {
 		return end;
+	}
+
+
+	//--------------------------------------- INCLUDE --------------------------------------------\\
+
+	public boolean includes(T elem) {
+		return elem.compareTo(beg) != -1 && elem.compareTo(end) != 1;
 	}
 }

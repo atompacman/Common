@@ -5,14 +5,17 @@ import java.awt.Toolkit;
 
 import javax.swing.JFrame;
 
-public abstract class AbstractJFrame {
+@SuppressWarnings("serial")
+public abstract class AbstractJFrame extends JFrame {
 
-	//------------ HELPER METHODS ------------\\
+	//======================================= METHODS ============================================\\
 
-	protected static void centerFrame(JFrame frame) {
+	//--------------------------------------- HELPERS --------------------------------------------\\
+
+	protected void centerFrame() {
 		Dimension dimension = Toolkit.getDefaultToolkit().getScreenSize();
-	    int x = (int) ((dimension.getWidth() - frame.getWidth()) / 2);
-	    int y = (int) ((dimension.getHeight() - frame.getHeight()) / 2);
-	    frame.setLocation(x, y);
+	    int x = (int) ((dimension.getWidth() - getWidth()) / 2);
+	    int y = (int) ((dimension.getHeight() - getHeight()) / 2);
+	    setLocation(x, y);
 	}
 }

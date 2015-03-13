@@ -21,4 +21,15 @@ public class StringHelper {
 		}
 		return sb.toString();
 	}
+	
+	public static String capitalize(String word) {
+		if (word == null || word.isEmpty()) {
+			return word;
+		}
+		if (word.charAt(0) < 'a' || word.charAt(0) > 'z') {
+			return word;
+		}
+		
+		return word.substring(0, 1).toUpperCase() + word.substring(1);
+	}
 }

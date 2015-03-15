@@ -8,19 +8,23 @@ import java.io.IOException;
 import java.util.Properties;
 import java.util.Map.Entry;
 
-public abstract class TextInputForExpecMsgBasedTest {
+public abstract class TextInputForExpecMsgBasedTest extends AbstractTest {
 
+	//=================================== ABSTRACT METHODS =======================================\\
+
+	public abstract void launchTest(String testInput);
+
+	
+	
 	//======================================= METHODS ============================================\\
 
-	public void launchTestList() {
-		String expectedExceptionFilePath = TestFileDetector.detectSingleFileForCurrentTest(-1);
+	public void launchTestList(String listPath) {
 		Properties expectedExceptionFile = new Properties();
 		
 		try {
-			expectedExceptionFile.load(new FileReader(expectedExceptionFilePath));
+			expectedExceptionFile.load(new FileReader(loadResources(listPath)));
 		} catch (IOException e) {
-			fail("Could not load expected exception file at \"" + 
-					expectedExceptionFilePath + "\": " + e.getMessage());
+			fail("Could not load expected exception file at \""+ listPath +"\": " + e.getMessage());
 		}
 
 		for (Entry<Object, Object> entry : expectedExceptionFile.entrySet()) {
@@ -37,6 +41,4 @@ public abstract class TextInputForExpecMsgBasedTest {
 			}
 		}
 	}
-
-	public abstract void launchTest(String testInput);
 }

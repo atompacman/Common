@@ -1,5 +1,0 @@
-ImplementsDirectlyParameterSet 			= Could not add parameter set class "ImplementsDirectlyParameterSet" to settings profile "": Class cannot implement ParameterSet directly; it must implements one of its child interfaces.
-ImplementsMultipleParameterSetClasses 	= Could not add parameter set class "ImplementsMultipleParameterSetClasses" to settings profile "": Class must only implement one child interface of ParameterSet.
-ImplementsDirectlyParamSetWithDefault	= Could not add parameter set class "ImplementsDirectlyParamSetWithDefault" to settings profile "": Class cannot implement ParamSetWithDefault directly; it must implements one of its child interfaces.
-NotAParameterSet 						= Could not add parameter set class "NotAParameterSet" to settings profile "": Class does not implement an interface that extends ParameterSet.
-NotAnEnum								= Could not add parameter set class "NotAnEnum" to settings profile "": Class must be an enum.

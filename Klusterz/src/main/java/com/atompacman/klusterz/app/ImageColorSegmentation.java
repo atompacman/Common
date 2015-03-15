@@ -9,7 +9,9 @@ import java.util.List;
 
 import javax.imageio.ImageIO;
 
-import com.atompacman.atomlog.Log;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import com.atompacman.configuana.Cmd;
 import com.atompacman.configuana.CmdArgs;
 import com.atompacman.configuana.CmdInfo;
@@ -23,6 +25,7 @@ import com.atompacman.klusterz.container.ClusteringPlan.Algorithm;
 import com.atompacman.klusterz.container.ClusteringPlan.InitialMeans;
 import com.atompacman.klusterz.container.Element;
 import com.atompacman.klusterz.container.KClass;
+import com.atompacman.toolkat.misc.StringHelper;
 
 public class ImageColorSegmentation implements Cmd<Klusterz, ICSFlag> {
 	
@@ -46,7 +49,12 @@ public class ImageColorSegmentation implements Cmd<Klusterz, ICSFlag> {
 			}};
 	}
 		
-		
+	
+	
+	//======================================= FIELDS =============================================\\
+
+	private static final Logger logger = LogManager.getLogger(ImageColorSegmentation.class);
+
 	private static final Algorithm 	  DEFAULT_ALGORITHM 	= Algorithm.K_MEANS;
 	private static final InitialMeans DEFAULT_INITIAL_MEANS = InitialMeans.RANDOM;
 
@@ -86,9 +94,8 @@ public class ImageColorSegmentation implements Cmd<Klusterz, ICSFlag> {
 								  						   Algorithm algorithm,
 								  						   InitialMeans initialMeans) {
 		
-		if (Log.infos() && Log.title("Image color segmentation application"));
-		
-		if (Log.infos() && Log.print("Loading image at \"" + inImg.getPath() + "\"."));
+		logger.info(StringHelper.title("Image color segmentation application"));
+		logger.info("Loading image at \"{}\".", inImg.getPath());
 		
 		BufferedImage referenceImg;
 		try {
@@ -98,7 +105,7 @@ public class ImageColorSegmentation implements Cmd<Klusterz, ICSFlag> {
 		}
 		int nbPixels = referenceImg.getWidth() * referenceImg.getHeight();
 		
-		if (Log.infos() && Log.print("Reading pixels (" + nbPixels + " values)."));
+		logger.info("Reading pixels ({} values).", nbPixels);
 		Element[] pixelElements = readPixelElements(referenceImg);
 		
 		ClusteringPlan plan = new ClusteringPlan(algorithm, pixelElements, nbClasses, initialMeans);
@@ -107,10 +114,10 @@ public class ImageColorSegmentation implements Cmd<Klusterz, ICSFlag> {
 
 		List<KClass> clusters = Klusterz.execute(plan);
 		
-		if (Log.infos() && Log.print("Writing clustered image at \"" + outImg.getPath() + "\"."));
+		logger.info("Writing clustered image at \"{}\".", outImg.getPath());
 		writeClusteredImage(clusters, referenceImg, outImg);
 		
-		if (Log.infos() && Log.print("Done."));
+		logger.info("Done");
 		
 		return clusters;
 	}

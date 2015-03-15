@@ -1,16 +1,18 @@
 package com.atompacman.toolkat.test;
 
+import static org.junit.Assert.fail;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.net.URL;
+
 import org.junit.Rule;
 import org.junit.rules.ExpectedException;
 
+import com.atompacman.toolkat.io.IO;
+
 public class AbstractTest {
 
-	//==================================== STATIC FIELDS =========================================\\
-
-	protected static String testDir;
-
-	
-	
 	//======================================= FIELDS =============================================\\
 
     @Rule
@@ -36,28 +38,19 @@ public class AbstractTest {
     }
     
     
-	//-------------------------------- DETECT TEST DIRECTORY -------------------------------------\\
+	//------------------------------------- LOAD RESOURCE ----------------------------------------\\
 
-	protected static void detectTestDirectory() {
-		testDir = TestFileDetector.resolveTestDirectory(-1);
-	}
-	
-	protected static void detectTestDirectory(String packagePathToRemove) {
-		TestFileDetector.setPackagePathToRemove(packagePathToRemove);
-		testDir = TestFileDetector.resolveTestDirectory(-1);
-	}
-	
-	protected static void detectTestDirectory(String testDirRoot, String packagePathToRemove) {
-		TestFileDetector.setPackagePathToRemove(packagePathToRemove);
-		TestFileDetector.setTestDirectory(testDirRoot);
-		testDir = TestFileDetector.resolveTestDirectory(-1);
-	}
-	
-	protected static void detectTestDirectory(String testDirRoot, 
-			String packagePathToRemove, int stackIndexModifier) {
-		
-		TestFileDetector.setPackagePathToRemove(packagePathToRemove);
-		TestFileDetector.setTestDirectory(testDirRoot);
-		testDir = TestFileDetector.resolveTestDirectory(stackIndexModifier - 1);
-	}
+    protected File loadResources(String path) {
+    	URL url = getClass().getResource(path);
+    	if (url == null) {
+    		fail("Test resource not found \"" + path + "\"");
+    	}
+    	File file = null;
+    	try {
+    		file = IO.getFile(url.getPath());
+		} catch (FileNotFoundException e) {
+    		fail("Test resource not found \"" + path + "\"");
+		}
+    	return file;
+    }
 }

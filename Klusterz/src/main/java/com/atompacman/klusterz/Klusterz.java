@@ -1,15 +1,17 @@
 package com.atompacman.klusterz;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
-import com.atompacman.atomlog.Log;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import com.atompacman.configuana.App;
 import com.atompacman.configuana.Cmd;
 import com.atompacman.configuana.param.Param;
 import com.atompacman.klusterz.Parameters.Misc;
-import com.atompacman.klusterz.Parameters.Paths;
 import com.atompacman.klusterz.algorithm.ClusteringAlgorithm;
 import com.atompacman.klusterz.algorithm.KMeans;
 import com.atompacman.klusterz.app.CartesianPlanClustering;
@@ -20,9 +22,15 @@ import com.atompacman.klusterz.container.KClass;
 import com.atompacman.klusterz.initialMeans.InitialMeansSelection;
 import com.atompacman.klusterz.initialMeans.MajorityMeansSelection;
 import com.atompacman.klusterz.initialMeans.RandomMeansSelection;
-import com.atompacman.toolkat.test.TestFileDetector;
+import com.atompacman.toolkat.misc.StringHelper;
 
 public final class Klusterz extends App {
+	
+	//====================================== CONSTANTS ===========================================\\
+
+	private static final Logger logger = LogManager.getLogger(Klusterz.class);
+	
+	
 	
 	//======================================= FIELDS =============================================\\
 
@@ -35,10 +43,7 @@ public final class Klusterz extends App {
 	//---------------------------------------- INIT ----------------------------------------------\\
 
 	public void init() {
-		if (Log.infos() && Log.title("KLUSTERZ"));
-		
-		TestFileDetector.setPackagePathToRemove(Klusterz.class.getPackage().getName());
-		TestFileDetector.setTestDirectory(Paths.TEST_DIRECTORY);
+		logger.info(StringHelper.title("KLUSTERZ"));
 		randGen = new Random(getDefaultProfile().getLong(Misc.RANDOM_SEED));
 	}
 	
@@ -46,28 +51,21 @@ public final class Klusterz extends App {
 	//--------------------------------------- EXECUTE --------------------------------------------\\
 
 	public static List<KClass> execute(ClusteringPlan plan) {
-		if (Log.infos() && Log.print("Beginning clustering"));
-
-		if (plan.getAlgorithm()    == null || 
-			plan.getElements()     == null || 
-			plan.getInitialMeans() == null) {
-			throw new NullPointerException();
-		}
+		logger.info("Beginning clustering");
 
 		int nbClasses = plan.getNbClasses();
 		Element[] elements = plan.getElements();
-		int nbElements = elements.length;
 
 		if (nbClasses < 1) {
 			throw new IllegalArgumentException("The number of class must be a positive integer.");
 		}
 
-		if (nbElements == 0) {
+		if (elements.length == 0) {
 			throw new IllegalArgumentException("The number of elements must not be zero.");
 		}
 
-		if (nbElements < nbClasses) {
-			if (Log.warng() && Log.print("More classes than elements: Using trivial solution"));
+		if (elements.length < nbClasses) {
+			logger.warn("More classes than elements: Using trivial solution");
 			return trivialSolution(elements);
 		}
 
@@ -133,10 +131,7 @@ public final class Klusterz extends App {
 	//--------------------------------------- GETTERS --------------------------------------------\\
 
 	public List<Class<? extends Cmd<?, ?>>> getCmdClasses() {
-		List<Class<? extends Cmd<?, ?>>> cmdClasses = new ArrayList<>();
-		cmdClasses.add(CartesianPlanClustering.class);
-		cmdClasses.add(ImageColorSegmentation.class);
-		return cmdClasses;
+		return Arrays.asList(CartesianPlanClustering.class, ImageColorSegmentation.class);
 	}
 
 	public List<Class<? extends Param>> getParamsClasses() {

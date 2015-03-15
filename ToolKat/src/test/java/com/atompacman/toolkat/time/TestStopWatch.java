@@ -10,7 +10,7 @@ public class TestStopWatch extends AbstractTest {
 
 	//====================================== CONSTANTS ===========================================\\
 
-	private static final double TIME_DELTA_NS = 15000;
+	private static final double TIME_DELTA_NS = 50000;
 	
 	
 	

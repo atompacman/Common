@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN">
+
+   <Appenders>
+      <Console name="Console" target="SYSTEM_OUT">
+         <PatternLayout pattern="%d{YYYY-MM-dd|HH:mm:ss.SSS}|%-130l [ %-5level] %m%n" />
+      </Console>
+
+      <RollingFile name="Log" fileName="target/log/klusterz-${date:MM-dd-yyyy}.log" filePattern="target/log/$${date:yyyy-MM}/klusterz-%d{MM-dd-yyyy}-%i.log.zip">
+         <PatternLayout pattern="%d{YYYY-MM-dd|HH:mm:ss.SSS}|%-150l [ %-5level] %m%n" />
+         <TimeBasedTriggeringPolicy interval="1"/>
+      </RollingFile>
+   </Appenders>
+
+   <Loggers>
+      <Root level="trace">
+         <AppenderRef ref="Console" />
+         <AppenderRef ref="Log" />
+      </Root>
+   </Loggers>
+
+</Configuration>

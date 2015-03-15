@@ -6,23 +6,12 @@ import static org.junit.Assert.assertTrue;
 import java.io.IOException;
 import java.util.List;
 
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.atompacman.toolkat.io.TextFileReader;
 import com.atompacman.toolkat.test.AbstractTest;
-import com.atompacman.toolkat.test.TestFileDetector;
 
 public class TestPatternDetector extends AbstractTest {
-	
-	//===================================== BEFORE CLASS =========================================\\
-
-	@BeforeClass
-	public static void beforeClass() {
-		detectTestDirectory("test", "com.atompacman.nrstep");
-	}
-	
-	
 	
 	//================================== FUNCTIONNAL TESTS =======================================\\
 
@@ -35,15 +24,12 @@ public class TestPatternDetector extends AbstractTest {
 	
 	@Test
 	public void test() {
-		Sequence seq = Letter.valueOf("ababcabab");
-		PatternDetector pd = new PatternDetector();
-		PatternTree pt = pd.detect(seq);
-		System.out.println(pt.toJSON());
+		new PatternDetector().detect(Letter.valueOf("ababcabab"));
 	}
 	
 	@Test
 	public void completeTest() throws IOException {
-		List<String> lines = TextFileReader.read(TestFileDetector.detectSingleFileForCurrentTest());
+		List<String> lines = TextFileReader.read(loadResources("completeTest.txt"));
 		PatternDetector detector = new PatternDetector();
 		for (String line : lines) {
 			String[] parts = line.split("=");

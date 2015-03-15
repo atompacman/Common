@@ -15,7 +15,9 @@ import java.util.List;
 
 import javax.imageio.ImageIO;
 
-import com.atompacman.atomlog.Log;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import com.atompacman.configuana.Cmd;
 import com.atompacman.configuana.CmdArgs;
 import com.atompacman.configuana.CmdInfo;
@@ -31,6 +33,7 @@ import com.atompacman.klusterz.container.Element;
 import com.atompacman.klusterz.container.KClass;
 import com.atompacman.toolkat.exception.Throw;
 import com.atompacman.toolkat.io.IO;
+import com.atompacman.toolkat.misc.StringHelper;
 
 public class CartesianPlanClustering implements Cmd<Klusterz, CPCFlag> {
 	
@@ -77,6 +80,8 @@ public class CartesianPlanClustering implements Cmd<Klusterz, CPCFlag> {
 	
 
 	//====================================== CONSTANTS ===========================================\\
+
+	private static final Logger logger = LogManager.getLogger(CartesianPlanClustering.class);
 
 	// Macros
 	private static final String CP 		= "Cartesian plan";
@@ -133,7 +138,7 @@ public class CartesianPlanClustering implements Cmd<Klusterz, CPCFlag> {
 	//--------------------------------------- EXECUTE --------------------------------------------\\
 	
 	public void execute(Klusterz app, CmdArgs<CPCFlag> args) {
-		if (Log.infos() && Log.title(CP + " clustering application", 1));
+		logger.info(StringHelper.title(CP + " clustering application", 1));
 
 		// Read Cartesian plan
 		clusterAlgo 	= Algorithm.valueOf(args.getValue(CPCFlag.ALGORITHM));
@@ -179,8 +184,7 @@ public class CartesianPlanClustering implements Cmd<Klusterz, CPCFlag> {
 			Throw.a(ClusteringAppException.class, CPDF + " is null.");
 		}
 		
-		if (Log.infos() && Log.print("Reading " + CPDF + " at \"" + 
-				cartesianPlanDesc.getAbsolutePath() + "\"."));
+		logger.info("Reading {} at \"{}\".", CPDF, cartesianPlanDesc.getAbsolutePath());
 		
 		List<String> fileLines = readFileLines(cartesianPlanDesc);
 		try {
@@ -271,7 +275,7 @@ public class CartesianPlanClustering implements Cmd<Klusterz, CPCFlag> {
 	//--------------------------------------- CLUSTER --------------------------------------------\\
 
 	public void cluster(int nbClusters) throws ClusteringAppException {
-		if (Log.infos() && Log.print("Clustering " + CP));
+		logger.info("Clustering {}", CP);
 
 		if (!cartesianPlanRead) {
 			Throw.a(ClusteringAppException.class, "A " + CPDF + " must be read before clustering.");
@@ -302,7 +306,7 @@ public class CartesianPlanClustering implements Cmd<Klusterz, CPCFlag> {
 					+ "be completed before writing result image.");
 		}
 		
-		if (Log.infos() && Log.print("Writing result image at \"" + resImg.getAbsolutePath()));
+		logger.info("Writing result image at \"{}\"", resImg.getAbsolutePath());
 
 		WritableRaster raster = WritableRaster.createInterleavedRaster(
 				DataBuffer.TYPE_BYTE, dim.width, dim.height, 3, new Point(0,0));
@@ -339,7 +343,7 @@ public class CartesianPlanClustering implements Cmd<Klusterz, CPCFlag> {
 		} catch (IOException e) {
 			Throw.a(ClusteringAppException.class, "Could not write final image", e);
 		}
-		if (Log.infos() && Log.print("Done writing image"));
+		logger.info("Done writing image");
 	}
 	
 	private int[][] generateColors() {

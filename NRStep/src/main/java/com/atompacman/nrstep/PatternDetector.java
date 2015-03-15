@@ -3,11 +3,20 @@ package com.atompacman.nrstep;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import com.atompacman.toolkat.exception.Throw;
 import com.atompacman.toolkat.math.Interval;
 
 public class PatternDetector {
-		
+	
+	//====================================== CONSTANTS ===========================================\\
+
+	private static final Logger logger = LogManager.getLogger(PatternDetector.class);
+	
+	
+	
 	//======================================= FIELDS =============================================\\
 
 	/** Processed sequence */
@@ -39,6 +48,8 @@ public class PatternDetector {
 	}
 
 	public PatternTree detect(Sequence sequence, int minPatternLength) {
+		logger.info("Detecting patterns in sequence \"{}\".", sequence.toJSON());
+		
 		seq = sequence;
 		len = sequence.size();
 		apt = new PatternTree(seq);
@@ -55,12 +66,16 @@ public class PatternDetector {
 						+ "longer than the half of the sequence");
 			}
 		} catch (NRStepException e) {
-			Throw.aRuntime(NRStepException.class, "Invalid minimum pattern length", e);
+			Throw.aRuntime(NRStepException.class, "Invalid minimum pattern length.", e);
 		}
 
 		for (int i = len / 2; i >= minPatLen; --i) {
+			logger.debug("Looking for patterns of size {}. Patterns "
+					+ "so far: {}.", i, apt.getAllPatterns().size());
 			detect(i);
 		}
+		
+		logger.info("Done detecting patterns. {} in total.", apt.getAllPatterns().size());
 
 		return apt;
 	}

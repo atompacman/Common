@@ -23,7 +23,7 @@ public class KMeans extends ClusteringAlgorithm {
 	public boolean updateClassesUntilConvergence() {
 		boolean convergence = true;
 		
-		double[] updatedMean = new double[nbDimensions];
+		double[] updatedMean = new double[numDim];
 		
 		for (KClass kClass : classes) {
 			if (kClass.elementsIndex.isEmpty()) {
@@ -34,13 +34,13 @@ public class KMeans extends ClusteringAlgorithm {
 			for (int elementIndex : kClass.elementsIndex) {
 				Element element = elements[elementIndex];
 				
-				for (int n = 0; n < nbDimensions; ++n) {
+				for (int n = 0; n < numDim; ++n) {
 					updatedMean[n] += element.components[n];
 				}
 			}
 			double meanFactor = 1.0 / (double) kClass.elementsIndex.size();
 			
-			for (int n = 0; n < nbDimensions; ++n) {
+			for (int n = 0; n < numDim; ++n) {
 				updatedMean[n] *= meanFactor;
 			}
 			Element newMean = new Element(updatedMean);

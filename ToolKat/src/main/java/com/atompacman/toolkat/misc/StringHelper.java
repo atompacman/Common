@@ -32,4 +32,44 @@ public class StringHelper {
 		
 		return word.substring(0, 1).toUpperCase() + word.substring(1);
 	}
+	
+	public static String title(String title) {
+		return title(title, 0);
+	}
+	
+	public static String title(String title, int spacesBetweenDots) {
+		StringBuilder line = new StringBuilder();
+		final int totalLen = 100;
+		
+		line.append('=');
+
+		while ((line.length() + spacesBetweenDots) < totalLen) {
+			for (int i = 0; i < spacesBetweenDots; ++i) {
+				line.append(' ');
+			}
+			line.append('=');
+		}
+		while (line.length() < totalLen - 1) {
+			line.append(' ');
+		}
+		if (line.length() == totalLen - 1) {
+			line.append('=');
+		}
+
+		if (title != null && title.length() != 0) {
+			title = " " + title + " ";
+		} else {
+			title = "";
+		}
+		int titleLength = title.length();
+		int titleStartPos = (totalLen - titleLength + 1) / 2;
+
+		if (titleStartPos < 0) {
+			line.replace(0, title.length() - 1, title.substring(1));
+		} else {
+			line.replace(titleStartPos, titleStartPos + titleLength, title);
+		}
+
+		return line.toString();
+	}
 }

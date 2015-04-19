@@ -2,12 +2,12 @@ package com.atompacman.toolkat.exception;
 
 @SuppressWarnings("serial")
 public class AbstractRuntimeException extends RuntimeException {
-	
-	//======================================= METHODS ============================================\\
 
-	//---------------------------------- PUBLIC CONSTRUCTOR --------------------------------------\\
+    //======================================= METHODS ============================================\\
 
-	public AbstractRuntimeException() {
-		super(Throw.msg, Throw.cause); 
-	}
+    //---------------------------------- PUBLIC CONSTRUCTOR --------------------------------------\\
+
+    public AbstractRuntimeException() {
+        super(Throw.msg, Throw.cause); 
+    }
 }

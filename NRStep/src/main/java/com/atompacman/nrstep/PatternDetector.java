@@ -10,219 +10,219 @@ import com.atompacman.toolkat.exception.Throw;
 import com.atompacman.toolkat.math.Interval;
 
 public class PatternDetector {
-	
-	//====================================== CONSTANTS ===========================================\\
 
-	private static final Logger logger = LogManager.getLogger(PatternDetector.class);
-	
-	
-	
-	//======================================= FIELDS =============================================\\
+    //====================================== CONSTANTS ===========================================\\
 
-	/** Processed sequence */
-	private Sequence seq;
-	
-	/** Processed sequence length */
-	private int len;
-	
-	/** Accepted patterns tree */
-	private PatternTree apt;
-	
-	/** Covered patterns tree */
-	private PatternTree cpt;
-	
-	/** Accepted patterns intervals */
-	private List<Interval<Integer>> interv;
+    private static final Logger logger = LogManager.getLogger(PatternDetector.class);
 
-	/** Current minimum pattern length */
-	private int minPatLen;
-	
-	
-	
-	//======================================= METHODS ============================================\\
 
-	//--------------------------------------- DETECT ---------------------------------------------\\
 
-	public PatternTree detect(Sequence sequence) {
-		return detect(sequence, 1);
-	}
+    //======================================= FIELDS =============================================\\
 
-	public PatternTree detect(Sequence sequence, int minPatternLength) {
-		logger.info("Detecting patterns in sequence \"{}\".", sequence.toJSON());
-		
-		seq = sequence;
-		len = sequence.size();
-		apt = new PatternTree(seq);
-		cpt = new PatternTree(seq);
-		interv = new ArrayList<Interval<Integer>>();
-		minPatLen = minPatternLength;
-		
-		try {
-			if (minPatternLength < 1) {
-				Throw.aRuntime(NRStepException.class, "Must be positive");
-			}
-			if (minPatternLength > len / 2 && len > 1) {
-				Throw.aRuntime(NRStepException.class, "Must not be "
-						+ "longer than the half of the sequence");
-			}
-		} catch (NRStepException e) {
-			Throw.aRuntime(NRStepException.class, "Invalid minimum pattern length.", e);
-		}
+    /** Processed sequence */
+    private Sequence seq;
 
-		for (int i = len / 2; i >= minPatLen; --i) {
-			logger.debug("Looking for patterns of size {}. Patterns "
-					+ "so far: {}.", i, apt.getAllPatterns().size());
-			detect(i);
-		}
-		
-		logger.info("Done detecting patterns. {} in total.", apt.getAllPatterns().size());
+    /** Processed sequence length */
+    private int len;
 
-		return apt;
-	}
+    /** Accepted patterns tree */
+    private PatternTree apt;
 
-	private void detect(int subSeqLen) {
-		for (int refSeqBeg = 0; refSeqBeg < len - 2 * subSeqLen + 1; ++refSeqBeg) {
-			int refSeqEnd = refSeqBeg + subSeqLen;
-			Sequence refSeq = seq.subSequence(refSeqBeg, refSeqEnd);
+    /** Covered patterns tree */
+    private PatternTree cpt;
 
-			if (cpt.contains(refSeq)) {
-				continue;
-			}
-			cpt.addOccurrence(refSeq, 0);
+    /** Accepted patterns intervals */
+    private List<Interval<Integer>> interv;
 
-			List<Integer> matches = findMatches(refSeq, refSeqEnd);
+    /** Current minimum pattern length */
+    private int minPatLen;
 
-			if (matches.size() < 2) {
-				continue;
-			}
 
-			matches = keepValidMatches(matches, subSeqLen);
 
-			if (matches.size() < 2) {
-				continue;
-			}
+    //======================================= METHODS ============================================\\
 
-			boolean patternsAreAllCovered = true;
-			for (int patBeg : matches) {
-				if (!isACoveredPattern(patBeg, patBeg + subSeqLen)) {
-					patternsAreAllCovered = false;
-					break;
-				}
-			}
-			if (!patternsAreAllCovered) {
-				addOccurances(refSeq, matches);
-			}
-		}
-	}
+    //--------------------------------------- DETECT ---------------------------------------------\\
 
-	private List<Integer> findMatches(Sequence refSeq, int refSeqEnd) {
-		List<Integer> matches = new ArrayList<Integer>();
-		int subSeqLen = refSeq.size();
+    public PatternTree detect(Sequence sequence) {
+        return detect(sequence, 1);
+    }
 
-		for (int cmpSeqBeg = refSeqEnd; cmpSeqBeg < len - subSeqLen + 1; ++cmpSeqBeg) {
-			Sequence cmpSeq = seq.subSequence(cmpSeqBeg, cmpSeqBeg + subSeqLen);
-			if (areEqual(refSeq, cmpSeq)) {
-				matches.add(cmpSeqBeg);
-				cmpSeqBeg += subSeqLen - 1;
-			}
-		}
+    public PatternTree detect(Sequence sequence, int minPatternLength) {
+        logger.info("Detecting patterns in sequence \"{}\".", sequence.toJSON());
 
-		if (!matches.isEmpty()) {
-			matches.add(0, refSeqEnd - subSeqLen);
-		}
+        seq = sequence;
+        len = sequence.size();
+        apt = new PatternTree(seq);
+        cpt = new PatternTree(seq);
+        interv = new ArrayList<Interval<Integer>>();
+        minPatLen = minPatternLength;
 
-		return matches;
-	}
+        try {
+            if (minPatternLength < 1) {
+                Throw.aRuntime(NRStepException.class, "Must be positive");
+            }
+            if (minPatternLength > len / 2 && len > 1) {
+                Throw.aRuntime(NRStepException.class, "Must not be "
+                        + "longer than the half of the sequence");
+            }
+        } catch (NRStepException e) {
+            Throw.aRuntime(NRStepException.class, "Invalid minimum pattern length.", e);
+        }
 
-	private List<Integer> keepValidMatches(List<Integer> matches, int subSeqLen) {
-		List<Integer> validMatches = new ArrayList<Integer>();
+        for (int i = len / 2; i >= minPatLen; --i) {
+            logger.debug("Looking for patterns of size {}. Patterns "
+                    + "so far: {}.", i, apt.getAllPatterns().size());
+            detect(i);
+        }
 
-		for (int i = 0; i < matches.size() - 2; ++i) {
-			Integer seqBegA = matches.get(i);
-			Integer seqBegB = matches.get(i + 1);
-			if (!areLinkedByAShorterPattern(seqBegA, seqBegB, subSeqLen)) {
-				validMatches.add(seqBegA);
-			}
-		}
-		Integer seqBegA = matches.get(matches.size() - 2);
-		Integer seqBegB = matches.get(matches.size() - 1);
-		if (!areLinkedByAShorterPattern(seqBegA, seqBegB, subSeqLen)) {
-			validMatches.add(seqBegA);
-			validMatches.add(seqBegB);
-		}
+        logger.info("Done detecting patterns. {} in total.", apt.getAllPatterns().size());
 
-		return validMatches;
-	}
+        return apt;
+    }
 
-	private boolean areLinkedByAShorterPattern(int seqBegA, int seqBegB, int subSeqLen) {
-		for (int patLen = 1; patLen < subSeqLen; ++patLen) {
-			int patSeqEnd = seqBegA + patLen;
-			Sequence patSeq = seq.subSequence(seqBegA, patSeqEnd);
-			int altSeqBeg = patSeqEnd;
-			Sequence altSeq = seq.subSequence(altSeqBeg, altSeqBeg + patLen);
+    private void detect(int subSeqLen) {
+        for (int refSeqBeg = 0; refSeqBeg < len - 2 * subSeqLen + 1; ++refSeqBeg) {
+            int refSeqEnd = refSeqBeg + subSeqLen;
+            Sequence refSeq = seq.subSequence(refSeqBeg, refSeqEnd);
 
-			while (areEqual(patSeq, altSeq) && altSeqBeg < seqBegB) {
-				altSeqBeg += patLen;
-				altSeq = seq.subSequence(altSeqBeg, altSeqBeg + patLen);
-			}
-			if (altSeqBeg >= seqBegB) {
-				return true;
-			}
-		}
-		return false;
-	}
+            if (cpt.contains(refSeq)) {
+                continue;
+            }
+            cpt.addOccurrence(refSeq, 0);
 
-	private boolean isACoveredPattern(int patBeg, int patEnd) {
-		boolean[] covered = new boolean[patEnd - patBeg];
-		for (Interval<Integer> inter : interv) {
-			if (inter.end() <= patBeg || inter.beg() >= patEnd) {
-				continue;
-			}
-			for (int i = Math.max(inter.beg(), patBeg); i < Math.min(inter.end(), patEnd); ++i) {
-				covered[i - patBeg] = true;
-			}
-			boolean allCovered = true;
-			for (boolean b : covered) {
-				if (!b) {
-					allCovered = false;
-					break;
-				}
-			}
-			if (allCovered) {
-				return true;
-			}
-		}
-		return false;
-	}
+            List<Integer> matches = findMatches(refSeq, refSeqEnd);
 
-	private void addOccurances(Sequence subSeq,	List<Integer> matches) {
-		apt.addOccurrences(subSeq, matches, new PatternDetector().detect(subSeq, minPatLen));
-		int seqLen = subSeq.size();
-		for (int matchBeg : matches) {
-			interv.add(new Interval<Integer>(matchBeg, matchBeg + seqLen));
-		}
-	}
+            if (matches.size() < 2) {
+                continue;
+            }
 
-	
-	
-	//==================================== STATIC METHODS ========================================\\
+            matches = keepValidMatches(matches, subSeqLen);
 
-	//-------------------------------------- ARE EQUAL -------------------------------------------\\
+            if (matches.size() < 2) {
+                continue;
+            }
 
-	static boolean areEqual(Sequence a, Sequence b) {
-		if (a.size() != b.size()) {
-			throw new IllegalArgumentException("Cannot compare sub-sequences of different length.");
-		}
-		for (int i = 0; i < a.size(); ++i) {
-			if (!areEqual(a.get(i), b.get(i))) {
-				return false;
-			}
-		}
-		return true;
-	}
+            boolean patternsAreAllCovered = true;
+            for (int patBeg : matches) {
+                if (!isACoveredPattern(patBeg, patBeg + subSeqLen)) {
+                    patternsAreAllCovered = false;
+                    break;
+                }
+            }
+            if (!patternsAreAllCovered) {
+                addOccurances(refSeq, matches);
+            }
+        }
+    }
 
-	@SuppressWarnings("unchecked")
-	static <T extends PatternElement<T>> boolean areEqual(PatternElement<?> a, PatternElement<?> b){
-		return a.getClass() == b.getClass() && ((T) a).isEqualTo((T) b);
-	}
+    private List<Integer> findMatches(Sequence refSeq, int refSeqEnd) {
+        List<Integer> matches = new ArrayList<Integer>();
+        int subSeqLen = refSeq.size();
+
+        for (int cmpSeqBeg = refSeqEnd; cmpSeqBeg < len - subSeqLen + 1; ++cmpSeqBeg) {
+            Sequence cmpSeq = seq.subSequence(cmpSeqBeg, cmpSeqBeg + subSeqLen);
+            if (areEqual(refSeq, cmpSeq)) {
+                matches.add(cmpSeqBeg);
+                cmpSeqBeg += subSeqLen - 1;
+            }
+        }
+
+        if (!matches.isEmpty()) {
+            matches.add(0, refSeqEnd - subSeqLen);
+        }
+
+        return matches;
+    }
+
+    private List<Integer> keepValidMatches(List<Integer> matches, int subSeqLen) {
+        List<Integer> validMatches = new ArrayList<Integer>();
+
+        for (int i = 0; i < matches.size() - 2; ++i) {
+            Integer seqBegA = matches.get(i);
+            Integer seqBegB = matches.get(i + 1);
+            if (!areLinkedByAShorterPattern(seqBegA, seqBegB, subSeqLen)) {
+                validMatches.add(seqBegA);
+            }
+        }
+        Integer seqBegA = matches.get(matches.size() - 2);
+        Integer seqBegB = matches.get(matches.size() - 1);
+        if (!areLinkedByAShorterPattern(seqBegA, seqBegB, subSeqLen)) {
+            validMatches.add(seqBegA);
+            validMatches.add(seqBegB);
+        }
+
+        return validMatches;
+    }
+
+    private boolean areLinkedByAShorterPattern(int seqBegA, int seqBegB, int subSeqLen) {
+        for (int patLen = 1; patLen < subSeqLen; ++patLen) {
+            int patSeqEnd = seqBegA + patLen;
+            Sequence patSeq = seq.subSequence(seqBegA, patSeqEnd);
+            int altSeqBeg = patSeqEnd;
+            Sequence altSeq = seq.subSequence(altSeqBeg, altSeqBeg + patLen);
+
+            while (areEqual(patSeq, altSeq) && altSeqBeg < seqBegB) {
+                altSeqBeg += patLen;
+                altSeq = seq.subSequence(altSeqBeg, altSeqBeg + patLen);
+            }
+            if (altSeqBeg >= seqBegB) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean isACoveredPattern(int patBeg, int patEnd) {
+        boolean[] covered = new boolean[patEnd - patBeg];
+        for (Interval<Integer> inter : interv) {
+            if (inter.end() <= patBeg || inter.beg() >= patEnd) {
+                continue;
+            }
+            for (int i = Math.max(inter.beg(), patBeg); i < Math.min(inter.end(), patEnd); ++i) {
+                covered[i - patBeg] = true;
+            }
+            boolean allCovered = true;
+            for (boolean b : covered) {
+                if (!b) {
+                    allCovered = false;
+                    break;
+                }
+            }
+            if (allCovered) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void addOccurances(Sequence subSeq,	List<Integer> matches) {
+        apt.addOccurrences(subSeq, matches, new PatternDetector().detect(subSeq, minPatLen));
+        int seqLen = subSeq.size();
+        for (int matchBeg : matches) {
+            interv.add(new Interval<Integer>(matchBeg, matchBeg + seqLen));
+        }
+    }
+
+
+
+    //==================================== STATIC METHODS ========================================\\
+
+    //-------------------------------------- ARE EQUAL -------------------------------------------\\
+
+    static boolean areEqual(Sequence a, Sequence b) {
+        if (a.size() != b.size()) {
+            throw new IllegalArgumentException("Cannot compare sub-sequences of different length.");
+        }
+        for (int i = 0; i < a.size(); ++i) {
+            if (!areEqual(a.get(i), b.get(i))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    @SuppressWarnings("unchecked")
+    static <T extends PatternElement<T>> boolean areEqual(PatternElement<?> a, PatternElement<?> b){
+        return a.getClass() == b.getClass() && ((T) a).isEqualTo((T) b);
+    }
 }

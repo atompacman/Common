@@ -13,44 +13,44 @@ import com.atompacman.toolkat.io.IO;
 
 public class AbstractTest {
 
-	//======================================= FIELDS =============================================\\
+    //======================================= FIELDS =============================================\\
 
     @Rule
     public ExpectedException expectation = ExpectedException.none();
-    
-    
-    
-	//==================================== STATIC METHODS ========================================\\
 
-	//---------------------------------------- EXPECT --------------------------------------------\\
+
+
+    //==================================== STATIC METHODS ========================================\\
+
+    //---------------------------------------- EXPECT --------------------------------------------\\
 
     protected void expect(Class<? extends Throwable> expectedException) {
-    	expectation.expect(expectedException);
+        expectation.expect(expectedException);
     }
-   
+
     protected void expect(Class<? extends Throwable> expectedException, String exceptionMsg) {
-    	expectation.expect(expectedException);
-    	expectation.expectMessage(exceptionMsg);
+        expectation.expect(expectedException);
+        expectation.expectMessage(exceptionMsg);
     }
-    
+
     protected void expect(String exceptionMsg) {
-    	expectation.expectMessage(exceptionMsg);
+        expectation.expectMessage(exceptionMsg);
     }
-    
-    
-	//------------------------------------- LOAD RESOURCE ----------------------------------------\\
+
+
+    //------------------------------------- LOAD RESOURCE ----------------------------------------\\
 
     protected File loadResources(String path) {
-    	URL url = getClass().getResource(path);
-    	if (url == null) {
-    		fail("Test resource not found \"" + path + "\"");
-    	}
-    	File file = null;
-    	try {
-    		file = IO.getFile(url.getPath());
-		} catch (FileNotFoundException e) {
-    		fail("Test resource not found \"" + path + "\"");
-		}
-    	return file;
+        URL url = getClass().getResource(path);
+        if (url == null) {
+            fail("Test resource not found \"" + path + "\"");
+        }
+        File file = null;
+        try {
+            file = IO.getFile(url.getPath());
+        } catch (FileNotFoundException e) {
+            fail("Test resource not found \"" + path + "\"");
+        }
+        return file;
     }
 }

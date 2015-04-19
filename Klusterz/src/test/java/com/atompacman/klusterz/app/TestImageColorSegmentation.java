@@ -10,14 +10,14 @@ import com.atompacman.toolkat.test.AbstractTest;
 
 public class TestImageColorSegmentation extends AbstractTest  {
 
-	//===================================== SYSTEM TESTS =========================================\\
-	
-	@Test
-	public void completeTest() {
-		File inImg = loadResources("Jellyfish.jpg");
-		File outImg = new File(inImg.getParentFile(), "Jellyseg.jpg");
-		ImageColorSegmentation.segmentateAndGetClusters(inImg, outImg, 
-				5, Algorithm.K_MEANS, InitialMeans.RANDOM);
-		outImg.delete();
-	}
+    //===================================== SYSTEM TESTS =========================================\\
+
+    @Test
+    public void completeTest() {
+        File inImg = loadResources("Jellyfish.jpg");
+        File outImg = new File(inImg.getParentFile(), "Jellyseg.jpg");
+        ImageColorSegmentation.segmentateAndGetClusters(inImg, outImg, 
+                5, Algorithm.K_MEANS, InitialMeans.RANDOM);
+        outImg.delete();
+    }
 }

@@ -8,14 +8,14 @@ import javax.swing.JFrame;
 @SuppressWarnings("serial")
 public abstract class AbstractJFrame extends JFrame {
 
-	//======================================= METHODS ============================================\\
+    //======================================= METHODS ============================================\\
 
-	//--------------------------------------- HELPERS --------------------------------------------\\
+    //--------------------------------------- HELPERS --------------------------------------------\\
 
-	protected void centerFrame() {
-		Dimension dimension = Toolkit.getDefaultToolkit().getScreenSize();
-	    int x = (int) ((dimension.getWidth() - getWidth()) / 2);
-	    int y = (int) ((dimension.getHeight() - getHeight()) / 2);
-	    setLocation(x, y);
-	}
+    protected void centerFrame() {
+        Dimension dimension = Toolkit.getDefaultToolkit().getScreenSize();
+        int x = (int) ((dimension.getWidth()  - getWidth()) / 2);
+        int y = (int) ((dimension.getHeight() - getHeight()) / 2);
+        setLocation(x, y);
+    }
 }

@@ -9,45 +9,47 @@ import com.atompacman.klusterz.container.KClass;
 
 public final class MajorityMeansSelection extends InitialMeansSelection {
 
-	//------------ PUBLIC CONSTRUCTOR ------------\\
+    //======================================= METHODS ============================================\\
 
-	public MajorityMeansSelection(int nbClasses) {
-		super(nbClasses);
-	}
+    //---------------------------------- PUBLIC CONSTRUCTOR --------------------------------------\\
 
-	
-	//------------ SELECT INITIAL MEANS ------------\\
-	
-	public KClass[] selectInitialMeans(Element[] elements) {
-		Map<Element, Integer> histogram = new HashMap<Element, Integer>();
-		
-		for (Element element : elements) {
-			Integer count = histogram.get(element);
-			if (count == null) {
-				histogram.put(element, 1);
-			} else {
-				histogram.put(element, count + 1);
-			}
-		}
-		
-		KClass[] classes = new KClass[nbClasses];
+    public MajorityMeansSelection(int nbClasses) {
+        super(nbClasses);
+    }
 
-		for (int i = 0; i < nbClasses; ++i) {
-			int max = 0;
-			Element mostCommon = null;
-			
-			for (Entry<Element, Integer> entry : histogram.entrySet()) {
-				int count = entry.getValue();
-				if (count > max) {
-					max = count;
-					mostCommon = entry.getKey();
-				}
-			}
-			histogram.remove(mostCommon);
-			
-			classes[i] = new KClass(mostCommon);
-		}
-		
-		return classes;
-	}
+
+    //--------------------------------- SELECT INITIAL MEANS -------------------------------------\\
+
+    public KClass[] selectInitialMeans(Element[] elements) {
+        Map<Element, Integer> histogram = new HashMap<Element, Integer>();
+
+        for (Element element : elements) {
+            Integer count = histogram.get(element);
+            if (count == null) {
+                histogram.put(element, 1);
+            } else {
+                histogram.put(element, count + 1);
+            }
+        }
+
+        KClass[] classes = new KClass[numClasses];
+
+        for (int i = 0; i < numClasses; ++i) {
+            int max = 0;
+            Element mostCommon = null;
+
+            for (Entry<Element, Integer> entry : histogram.entrySet()) {
+                int count = entry.getValue();
+                if (count > max) {
+                    max = count;
+                    mostCommon = entry.getKey();
+                }
+            }
+            histogram.remove(mostCommon);
+
+            classes[i] = new KClass(mostCommon);
+        }
+
+        return classes;
+    }
 }

@@ -1,210 +1,156 @@
 package com.atompacman.configuana;
 
-import java.io.FileNotFoundException;
-import java.util.ArrayList;
+import java.io.File;
+import java.io.FileInputStream;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
-import com.atompacman.configuana.param.Param;
 import com.atompacman.toolkat.exception.Throw;
-import com.atompacman.toolkat.io.IO;
 
 public abstract class Lib {
 
-	//===================================== INNER TYPES ==========================================\\
+    //====================================== CONSTANTS ===========================================\\
 
-	public static class LibInfo {
-		
-		//===================================== FIELDS ===========================================\\
-
-		private String 					  	name;
-		private String					  	version;
-		private String					  	configFilePath;
-		private String			 			binariesPath;
-		private String						defaultProfileName;
-		private String						libClassName;
-		private List<String>				settingsProfileNames;
-		
-		
-		
-		//===================================== METHODS ==========================================\\
-
-		//------------------------------------- SETTERS ------------------------------------------\\
-
-		void setName(String libName) {
-			this.name = libName;
-		}
-		
-		void setVersion(String libVersion) {
-			this.version = libVersion;
-		}
-		
-		void setConfigFilePath(String libConfigFilePath) {
-			this.configFilePath = libConfigFilePath;
-		}
-		
-		void setBinariesPath(String libBinariesPath) {
-			this.binariesPath = libBinariesPath;
-		}
-		
-		void setDefaultProfileName(String defaultProfileName) {
-			try {
-				this.defaultProfileName = IO.getFile(defaultProfileName).getPath();
-			} catch (FileNotFoundException e) {
-				Throw.aRuntime(AppLauncherException.class, "Default profile file not found", e);
-			}
-		}
-
-		void setLibClassName(String libClassName) {
-			this.libClassName = libClassName;
-		}
-		
-		void setSettingsProfileNames(List<String> settingsProfileNames) {
-			this.settingsProfileNames = settingsProfileNames;
-		}
-		
-		
-		//------------------------------------- GETTERS ------------------------------------------\\
-
-		public String getName() {
-			return name;
-		}
-		
-		public String getVersion() {
-			return version;
-		}
-		
-		public String getConfigFilePath() {
-			return configFilePath;
-		}
-		
-		public String getBinariesPath() {
-			return binariesPath;
-		}
-		
-		public String getDefaultProfileName() {
-			return defaultProfileName;
-		}
-
-		public String getLibClassName() {
-			return libClassName;
-		}
-		
-		public List<String> getSettingsProfileNames() {
-			return settingsProfileNames;
-		}
-	}
-	
-	
-	
-	//======================================= FIELDS =============================================\\
-
-	private LibInfo info;
-	private Map<String, Settings> settingsProfiles;
-	private App	parentApp;
-
-	
-
-	//=================================== ABSTRACT METHODS =======================================\\
-
-	public abstract List<Class<? extends Param>> getParamsClasses();
-
-	
-	
-	//======================================= METHODS ============================================\\
-
-	//---------------------------------- PUBLIC CONSTRUCTOR --------------------------------------\\
-
-	public Lib() {
-		this.settingsProfiles = new HashMap<String, Settings>();
-	}
-	
-
-	//----------------------------------------- INIT ---------------------------------------------\\
-
-	public abstract void init();
-	
-	
-	//--------------------------------------- SETTERS --------------------------------------------\\
-
-	void setLibInfo(LibInfo info) {
-		this.info = info;
-		List<String> settingsProfilePaths = new ArrayList<>();
-		for (String settingsProfileFilePath : info.settingsProfileNames) {
-			try {
-				String fullPath = IO.getFile(settingsProfileFilePath).getAbsolutePath();
-				settingsProfilePaths.add(fullPath);
-				addSettingsProfile(fullPath, true);
-			} catch (Exception e) {
-				Throw.aRuntime(AppLauncherException.class, "Failed to add settings profile \"" 
-						+ settingsProfileFilePath + "\" to library \"" + info.name + "\"", e);
-			}
-		}
-		info.setDefaultProfileName(info.defaultProfileName);
-		info.setSettingsProfileNames(settingsProfilePaths);
-	}
-	
-	void addSettingsProfile(String profileFilePath, boolean existingFile) {
-		if (settingsProfiles.containsKey(profileFilePath)) {
-			Throw.aRuntime(AppLauncherException.class, "Settings profile at \"" + 
-					profileFilePath + "\" was already added to current lib config");
-		}
-
-		Settings profile = null;
-
-		try {
-			profile = new Settings(profileFilePath, new HashSet<>(getParamsClasses()), 
-					existingFile, this);
-		} catch (Exception e) {
-			String word = existingFile ? "add" : "create";
-			Throw.aRuntime(AppLauncherException.class, "Could not " + word + 
-					" settings " + "profile file at \"" + profileFilePath + "\"", e);
-		}
-
-		settingsProfiles.put(profileFilePath, profile);
-	}
-
-	void setParentApp(App parentApp) {
-		this.parentApp = parentApp;
-	}
-
-	
-	//--------------------------------------- GETTERS --------------------------------------------\\
-
-	public LibInfo getLibInfo() {
-		return info;
-	}
-	
-	public Settings getDefaultProfile() {
-		return getSettingsProfile(info.defaultProfileName);
-	}
-	
-	public Settings getSettingsProfile(String profileName) {
-		Settings profile = settingsProfiles.get(profileName);
-		if (profile == null) {
-			throw new IllegalArgumentException("There is not a setting profile named "
-					+ "\"" + profileName + "\" in current application configuration");
-		}
-		return profile;
-	}
-
-	public Set<String> getLoadedSettingsProfileNames() {
-		return new HashSet<>(settingsProfiles.keySet());
-	}
-	
-	public ReadOnlySettings getReadOnlySettingsProfile(String profileName) {
-		return getSettingsProfile(profileName);
-	}
-
-	public App getParentApp() {
-		return parentApp;
-	}
+    private static final String SETTINGS_PROFILE_EXTENSION = ".csp";
 
 
-	//--------------------------------------- SHUTDOWN -------------------------------------------\\
 
-	public abstract void shutdown();
+    //======================================= FIELDS =============================================\\
+
+    private String name;
+    private String description;
+    private String groupID;
+    private String artifactID;
+    private String version;
+    private String defaultProfile;
+    
+    private Map<String, Settings> settingsProfiles;
+    private Map<String, Lib>      childLibs;
+    
+
+
+    //=================================== ABSTRACT METHODS =======================================\\
+
+    public abstract void init();
+    
+    public abstract List<Class<? extends StrictParam>> getParamsClasses();
+
+    public abstract void shutdown();
+
+    
+
+    //======================================= METHODS ============================================\\
+
+    //---------------------------------- PUBLIC CONSTRUCTOR --------------------------------------\\
+
+    public Lib() {
+        this.settingsProfiles = new LinkedHashMap<>();
+        this.childLibs        = new HashMap<>();
+    }
+
+
+    //--------------------------------------- SETTERS --------------------------------------------\\
+
+    void setInfo(String name,
+                 String description,
+                 String groupID,
+                 String artifactID,
+                 String version,
+                 String defaultProfile) {
+        
+        this.name            = name;
+        this.description     = description;
+        this.groupID         = groupID;
+        this.artifactID      = artifactID;
+        this.version         = version;
+        this.defaultProfile  = defaultProfile;
+        
+        loadSettingsProfiles();
+    }
+
+    private void loadSettingsProfiles() {
+        // Scan the configuana directory in the jar for settings profile
+        ClassLoader cl = Thread.currentThread().getContextClassLoader();
+        File configuanaDir = new File(cl.getResource(AppLauncher.CONFIGUANA_DIR_IN_JAR).getFile());
+        String jarPath = configuanaDir.getParent().replace("!","").replace("file:\\", "");
+        Set<Class<? extends StrictParam>> rootParamClasses = new HashSet<>(getParamsClasses());
+        String profileName = null;
+        try (ZipInputStream jis = new ZipInputStream(new FileInputStream(jarPath))) {
+            ZipEntry entry;
+            while ((entry = jis.getNextEntry()) != null) {
+                String eName = entry.getName();
+                // Check that it follows the format configuana/{artifactID}.{profileName}.cps
+                if (!eName.startsWith(AppLauncher.CONFIGUANA_DIR_IN_JAR + artifactID + ".") || 
+                    !eName.endsWith(SETTINGS_PROFILE_EXTENSION)) {
+                    continue;
+                }
+                
+                // Only keep the name of the profile
+                profileName = eName.substring(eName.indexOf('.') + 1, eName.lastIndexOf('.'));
+                settingsProfiles.put(profileName, new Settings(entry.getName(), rootParamClasses));
+            }
+        } catch (Exception e) {
+            Throw.aRuntime(AppLauncherException.class, "Failed to add settings profile \"" 
+                    + profileName + "\" to library \"" + name + "\"", e);
+        }
+    }
+
+    void addChildLib(Lib child) {
+        childLibs.put(child.artifactID, child);
+    }
+
+
+    //--------------------------------------- GETTERS --------------------------------------------\\
+
+    public String getName() {
+        return name;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public String getGroupID() {
+        return groupID;
+    }
+
+    public String getArtifactID() {
+        return artifactID;
+    }
+
+    public String getVersion() {
+        return version;
+    }
+
+    public Settings getDefaultProfile() {
+        return getSettingsProfile(defaultProfile);
+    }
+
+    public Settings getSettingsProfile(String profileName) {
+        Settings profile = settingsProfiles.get(profileName);
+        if (profile == null) {
+            throw new IllegalArgumentException("There is not a setting profile named "
+                    + "\"" + profileName + "\" in current application configuration");
+        }
+        return profile;
+    }
+
+    public Set<String> getSettingsProfileNames() {
+        return settingsProfiles.keySet();
+    }
+
+    public Lib getChildLib(String artifactID) {
+        Lib lib = childLibs.get(artifactID);
+        if (lib == null) {
+            throw new IllegalArgumentException("\" Library " + name + "\" has "
+                    + "no child library with artifact ID \"" + artifactID + "\"");
+        }
+        return lib;
+    }
 }

@@ -1,4 +1,4 @@
-package com.atompacman.toolkat.construction;
+package com.atompacman.toolkat.misc;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;

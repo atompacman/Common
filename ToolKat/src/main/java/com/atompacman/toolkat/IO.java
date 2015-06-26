@@ -1,8 +1,10 @@
-package com.atompacman.toolkat.io;
+package com.atompacman.toolkat;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
 
 public class IO {
 
@@ -46,5 +48,21 @@ public class IO {
             throw new IllegalArgumentException("File path elements cannot be empty.");
         }
         return new File(pathElem[0]);
+    }
+    
+    public static File getResource(String path) throws FileNotFoundException {
+        URL url = Thread.currentThread().getContextClassLoader().getResource(path);
+        if (url == null) {
+            throw new FileNotFoundException("Cannot find resource \"" + path + "\".");
+        }
+        return new File(url.getPath());
+    }
+    
+    public static InputStream getResourceasStream(String path) throws FileNotFoundException {
+        InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream(path);
+        if (is == null) {
+            throw new FileNotFoundException("Cannot find resource \"" + path + "\".");
+        }
+        return is;
     }
 }

@@ -1,6 +1,7 @@
 package com.atompacman.configuana;
 
 import java.io.BufferedReader;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -15,8 +16,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
+import com.atompacman.toolkat.IO;
 import com.atompacman.toolkat.exception.Throw;
-import com.atompacman.toolkat.io.IO;
 
 public class AppLauncher {
 
@@ -32,7 +33,7 @@ public class AppLauncher {
     private static final String ARTIFACT_NAME_PROPERTY         = "artifact.name";
     private static final String ARTIFACT_DESCRIPTION_PROPERTY  = "artifact.description";
     private static final String ARTIFACT_GROUP_ID_PROPERTY     = "artifact.groupId";
-    private static final String ARTIFACT_ARTIFACT_ID__PROPERTY = "artifact.artifactId";
+    private static final String ARTIFACT_ARTIFACT_ID_PROPERTY  = "artifact.artifactId";
     private static final String ARTIFACT_VERSION_PROPERTY      = "artifact.version";
     private static final String DEFAULT_SETTINGS_PROPERTY      = "configuana.default.settings";
     private static final String MAIN_CLASS_PROPERTY            = "configuana.main.class";
@@ -76,7 +77,7 @@ public class AppLauncher {
         // Set a new URLClassLoader that has the jar in its classpath as current ClassLoader
         addJarToClassLoader(args[0]);
         
-        // Create an initialize the App instance
+        // Create and initialize the App instance
         A app = createApp();
         
         // Parse the Command sent to the App
@@ -90,9 +91,6 @@ public class AppLauncher {
         
         // Actually EXECUTE the App
         cmd.execute(app, cmdArgs);
-        
-        // Shutdown the App
-        app.shutdown();
     }
 
     private static void addJarToClassLoader(String jarPath) {
@@ -108,10 +106,11 @@ public class AppLauncher {
     @SuppressWarnings("unchecked")
     private static <A extends App> A createApp() {
         // Detect App file in jar under configuana directory
-        ClassLoader cl = Thread.currentThread().getContextClassLoader();
-        String appFilePath = CONFIGUANA_DIR_IN_JAR + APP_FILE;
-        InputStream is = cl.getResourceAsStream(appFilePath);
-        if (is == null) {
+        String appFilePath = CONFIGUANA_DIR_IN_JAR + APP_FILE; 
+        InputStream is = null;
+        try {
+            is = IO.getResourceasStream(appFilePath);
+        } catch (FileNotFoundException e1) {
             Throw.aRuntime(AppLauncherException.class, "Could not find a "
                     + "configuana app file at \"" + appFilePath + "\"");
         }
@@ -160,7 +159,7 @@ public class AppLauncher {
         lib.setInfo(libInfo.getProperty(ARTIFACT_NAME_PROPERTY),
                     libInfo.getProperty(ARTIFACT_DESCRIPTION_PROPERTY),
                     libInfo.getProperty(ARTIFACT_GROUP_ID_PROPERTY),
-                    libInfo.getProperty(ARTIFACT_ARTIFACT_ID__PROPERTY),
+                    libInfo.getProperty(ARTIFACT_ARTIFACT_ID_PROPERTY),
                     libInfo.getProperty(ARTIFACT_VERSION_PROPERTY),
                     libInfo.getProperty(DEFAULT_SETTINGS_PROPERTY));
         
@@ -181,7 +180,6 @@ public class AppLauncher {
 
     @SuppressWarnings("serial")
     private static Properties readInfoFile(String infoFile) {
-        ClassLoader cl = Thread.currentThread().getContextClassLoader();
         Properties libInfo = new Properties() {
             public String getProperty(String key) {
                 String value = super.getProperty(key);
@@ -193,13 +191,13 @@ public class AppLauncher {
             }
         };
         try {
-            libInfo.load(cl.getResourceAsStream(CONFIGUANA_DIR_IN_JAR + infoFile));
+            libInfo.load(IO.getResourceasStream(CONFIGUANA_DIR_IN_JAR + infoFile));
         } catch (IOException e) {
             Throw.aRuntime(AppLauncherException.class, "Could not find "
                     + "configuana library info file \"" + infoFile + "\"");
         }
         
-        String artifactID = libInfo.getProperty(ARTIFACT_ARTIFACT_ID__PROPERTY);
+        String artifactID = libInfo.getProperty(ARTIFACT_ARTIFACT_ID_PROPERTY);
         if (!infoFile.replace(INFO_FILE_EXTENSION, "").equals(artifactID)) {
             Throw.aRuntime(AppLauncherException.class, "Library info file basename name ("+ infoFile
                     + ") must be the artifact ID of its described project (" + artifactID + ")");

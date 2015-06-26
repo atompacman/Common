@@ -31,8 +31,8 @@ import com.atompacman.klusterz.container.ClusteringPlan.Algorithm;
 import com.atompacman.klusterz.container.ClusteringPlan.InitialMeans;
 import com.atompacman.klusterz.container.Element;
 import com.atompacman.klusterz.container.KClass;
+import com.atompacman.toolkat.IO;
 import com.atompacman.toolkat.exception.Throw;
-import com.atompacman.toolkat.io.IO;
 import com.atompacman.toolkat.misc.StringHelper;
 
 public class CartesianPlanClustering implements Cmd<Klusterz, CPCFlag> {

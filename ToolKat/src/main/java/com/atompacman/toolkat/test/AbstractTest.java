@@ -9,7 +9,7 @@ import java.net.URL;
 import org.junit.Rule;
 import org.junit.rules.ExpectedException;
 
-import com.atompacman.toolkat.io.IO;
+import com.atompacman.toolkat.IO;
 
 public class AbstractTest {
 

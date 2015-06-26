@@ -1,10 +1,10 @@
-package com.atompacman.toolkat.construction;
+package com.atompacman.toolkat.misc;
 
 import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
-import com.atompacman.toolkat.construction.EnumRepresConstruc;
+import com.atompacman.toolkat.misc.EnumRepresConstruc;
 import com.atompacman.toolkat.test.AbstractTest;
 
 public class TestEnumRepresConstructor extends AbstractTest {

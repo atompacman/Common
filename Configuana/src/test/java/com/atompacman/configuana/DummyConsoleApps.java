@@ -15,7 +15,7 @@ public class DummyConsoleApps {
         public String appName() { return null; }
         public List<Class<? extends StrictParam>> getParamsClasses() { return null; }
         public void init() {}
-        public void shutdown() {}
+        public void finalize() {}
     }
 
     public static class HasACmdClassWoutAnEmptyConstr extends App {
@@ -42,7 +42,7 @@ public class DummyConsoleApps {
         }
         public List<Class<? extends StrictParam>> getParamsClasses() { return null; }
         public void init() {}
-        public void shutdown() {}
+        public void finalize() {}
     }
 
     public static class HasACmdClassThatExtFlag extends App {
@@ -60,7 +60,7 @@ public class DummyConsoleApps {
 
         public List<Class<? extends StrictParam>> getParamsClasses() { return null; }
         public void init() {}
-        public void shutdown() {}
+        public void finalize() {}
     }
 
     public static class HasNonEnumFlagClass extends App {
@@ -82,7 +82,7 @@ public class DummyConsoleApps {
 
         public List<Class<? extends StrictParam>> getParamsClasses() { return null; }
         public void init() {}
-        public void shutdown() {}
+        public void finalize() {}
     }
 
     public static class HasFlagWithNegNumArgs extends App {
@@ -108,7 +108,7 @@ public class DummyConsoleApps {
 
         public List<Class<? extends StrictParam>> getParamsClasses() { return null; }
         public void init() {}
-        public void shutdown() {}
+        public void finalize() {}
     }
 
     public static class HasCmdWithNegMainArgs extends App {
@@ -126,6 +126,6 @@ public class DummyConsoleApps {
 
         public List<Class<? extends StrictParam>> getParamsClasses() { return null; }
         public void init() {}
-        public void shutdown() {}
+        public void finalize() {}
     }
 }	

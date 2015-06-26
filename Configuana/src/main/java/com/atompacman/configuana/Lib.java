@@ -41,8 +41,6 @@ public abstract class Lib {
     
     public abstract List<Class<? extends StrictParam>> getParamsClasses();
 
-    public abstract void shutdown();
-
     
 
     //======================================= METHODS ============================================\\

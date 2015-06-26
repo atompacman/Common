@@ -28,7 +28,7 @@ public class NRStep extends Lib {
         logger.info(StringHelper.title(getName() + " " + getVersion()));
     }
 
-    public void shutdown() {
+    public void finalize() {
 
     }
 }

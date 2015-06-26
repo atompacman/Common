@@ -70,7 +70,6 @@ public class TestStopWatch extends AbstractTest {
         sw.getElapsedTime();
     }
 
-
     //================================== FUNCTIONNAL TESTS =======================================\\
 
     @Test
@@ -84,9 +83,9 @@ public class TestStopWatch extends AbstractTest {
 
         sw.click();
         b = System.nanoTime();
-        assertEquals(a	, sw.getStartTime(), 	TIME_DELTA_NS);
-        assertEquals(b	, sw.getStopTime(), 	TIME_DELTA_NS);
-        assertEquals(b-a, sw.getElapsedTime(), 	TIME_DELTA_NS);
+        assertEquals(a,     sw.getStartTime(),   TIME_DELTA_NS);
+        assertEquals(b,     sw.getStopTime(),    TIME_DELTA_NS);
+        assertEquals(b - a, sw.getElapsedTime(), TIME_DELTA_NS);
 
         sw.click();
         c = System.nanoTime();
@@ -94,9 +93,9 @@ public class TestStopWatch extends AbstractTest {
 
         sw.click();
         d = System.nanoTime();
-        assertEquals(a, 		sw.getStartTime(), 		TIME_DELTA_NS);
-        assertEquals(d, 		sw.getStopTime(), 		TIME_DELTA_NS);
-        assertEquals(b-a + d-c, sw.getElapsedTime(), 	TIME_DELTA_NS);
+        assertEquals(a,             sw.getStartTime(),   TIME_DELTA_NS);
+        assertEquals(d,             sw.getStopTime(),    TIME_DELTA_NS);
+        assertEquals(b - a + d - c, sw.getElapsedTime(), TIME_DELTA_NS);
 
         sw.click();
         e = System.nanoTime();
@@ -104,8 +103,8 @@ public class TestStopWatch extends AbstractTest {
 
         sw.click();
         f = System.nanoTime();
-        assertEquals(a, 			sw.getStartTime(), 	 	TIME_DELTA_NS);
-        assertEquals(f, 			sw.getStopTime(), 	 	TIME_DELTA_NS);
-        assertEquals(b-a+d-c+f-e, 	sw.getElapsedTime(), 	TIME_DELTA_NS);
+        assertEquals(a,                     sw.getStartTime(),   TIME_DELTA_NS);
+        assertEquals(f,                     sw.getStopTime(),    TIME_DELTA_NS);
+        assertEquals(b - a + d - c + f - e, sw.getElapsedTime(), TIME_DELTA_NS);
     }
 }

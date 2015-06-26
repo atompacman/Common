@@ -144,7 +144,7 @@ public final class Klusterz extends App {
 
     //--------------------------------------- SHUTDOWN -------------------------------------------\\
 
-    public void shutdown() {
+    public void finalize() {
 
     }
 }

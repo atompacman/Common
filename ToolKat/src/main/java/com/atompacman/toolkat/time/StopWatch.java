@@ -81,9 +81,6 @@ public class StopWatch {
     }
 
 
-
-    //==================================== STATIC METHODS ========================================\\
-
     //---------------------------------- EXCEPTION HELPER ----------------------------------------\\
 
     private static void throwException(String x, String y) {

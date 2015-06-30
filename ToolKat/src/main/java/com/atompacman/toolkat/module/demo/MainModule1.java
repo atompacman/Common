@@ -1,9 +1,9 @@
 package com.atompacman.toolkat.module.demo;
 
 import com.atompacman.toolkat.misc.Log;
-import com.atompacman.toolkat.module.Anomaly;
-import com.atompacman.toolkat.module.Anomaly.Impact;
-import com.atompacman.toolkat.module.Anomaly.Recoverability;
+import com.atompacman.toolkat.module.AnomalyDescription;
+import com.atompacman.toolkat.module.AnomalyDescription.Impact;
+import com.atompacman.toolkat.module.AnomalyDescription.Recoverability;
 import com.atompacman.toolkat.module.Module;
 import com.atompacman.toolkat.module.ProcedureDescription;
 
@@ -18,11 +18,11 @@ public class MainModule1 extends Module {
     }
     
     public enum MainAnomaly {
-        @Anomaly(consequences   = "bricks will be", 
-                 description    = "ayoyoyo", 
-                 impact         = Impact.FATAL, 
-                 name           = "AYOOO", 
-                 recoverability = Recoverability.TRIVIAL)
+        @AnomalyDescription(consequences   = "bricks will be", 
+                            description    = "ayoyoyo", 
+                            impact         = Impact.FATAL, 
+                            name           = "AYOOO", 
+                            recoverability = Recoverability.TRIVIAL)
         ANOM_A;
     }
     

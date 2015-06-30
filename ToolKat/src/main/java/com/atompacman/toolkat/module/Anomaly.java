@@ -1,31 +1,65 @@
 package com.atompacman.toolkat.module;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import org.apache.logging.log4j.Level;
 
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.FIELD)
-public @interface Anomaly {
+public class Anomaly extends Observation {
 
-    //===================================== INNER TYPES ==========================================\\
-
-    public enum Impact {
-        NONE, MINIMAL, MODERATE, CRITIC, FATAL;
-    }
-
-    public enum Recoverability {
-        UNKNOWN, TRIVIAL, NORMAL, HARD, IMPOSSIBLE;
-    }
-
-
-    
     //======================================= FIELDS =============================================\\
 
-    String                  name();
-    String                  description();
-    String                  consequences();
-    Impact                  impact();
-    Recoverability          recoverability();
+    private final AnomalyDescription description;
+    private final String             details;
+
+
+
+    //======================================= METHODS ============================================\\
+
+    //--------------------------------- PACKAGE CONSTRUCTORS -------------------------------------\\
+
+    Anomaly(AnomalyDescription desc, int stackTrackLvlModifier) {
+        this(desc, null, stackTrackLvlModifier + 1);
+    }
+
+    Anomaly(AnomalyDescription desc, String details, int stackTrackLvlModifier) {
+        super(stackTrackLvlModifier);
+        this.description = desc;
+        this.details = details;
+    }
+
+
+    //--------------------------------------- GETTERS --------------------------------------------\\
+
+    public AnomalyDescription getDescription() {
+        return description;
+    }
+
+    public String getDetails() {
+        return details;
+    }
+
+
+    //---------------------------------------- STATE ---------------------------------------------\\
+
+    public boolean hasDetails() {
+        return details != null;
+    }
+
+
+    //--------------------------------------- FORMAT ---------------------------------------------\\
+
+    public Level verbose() {
+        switch (description.impact()) {
+        case FATAL:     return Level.FATAL;
+        case CRITIC: 	return Level.WARN;
+        case MODERATE: 	return Level.INFO;
+        case MINIMAL:   return Level.DEBUG;
+        case NONE: 		return Level.TRACE;
+        }
+        return null;
+    }
+
+    public String format() {
+        String conseq = description.consequences();
+        return "{ANOMALY} " + description.name() + (details == null ? "" : " - " + details) 
+                + ": " + conseq.substring(0, 1).toLowerCase() + conseq.substring(1) + ".";
+    }
 }

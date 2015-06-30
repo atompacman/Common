@@ -1,5 +1,6 @@
 package com.atompacman.toolkat.module;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 
 import org.apache.logging.log4j.Level;
@@ -43,38 +44,42 @@ public abstract class Module {
     }
 
     protected void subprocedure(Enum<?> parentProcDesc, Enum<?> procDesc) {
-        profiler.startProcedure(extractProcDesc(parentProcDesc), extractProcDesc(procDesc), this,1);
+        profiler.startProcedure(extractProcDesc(parentProcDesc),extractProcDesc(procDesc), this, 1);
     }
 
 
     //----------------------------------------- LOG ----------------------------------------------\\
 
     protected void log(String format, Object...args) {
-        profiler.recordObservation(new LogEntry(String.format(format, args), verbose, 1), 1);
+        LogEntry entry = new LogEntry(String.format(format, args), verbose, 1);
+        profiler.recordObservation(entry, 1);
     }
 
     protected void log(Level verbose, String format, Object...args) {
-        profiler.recordObservation(new LogEntry(String.format(format, args), verbose, 1), 1);
+        LogEntry entry = new LogEntry(String.format(format, args), verbose, 1);
+        profiler.recordObservation(entry, 1);
     }
 
     protected void log(Level verbose, int titleSpacing, String format, Object...args) {
-        LogEntry entry = new LogEntry(String.format(format, args), verbose,titleSpacing, 1);
+        LogEntry entry = new LogEntry(String.format(format, args), verbose, titleSpacing, 1);
         profiler.recordObservation(entry, 1);
     }
 
 
     //--------------------------------------- ANOMALY --------------------------------------------\\
 
-    protected void signal(Object anomaly) {
-        profiler.recordObservation(new AnomalyOccurrence(anomaly, 1), 1);
+    protected void signal(Enum<?> anomaly) {
+        Anomaly ano = new Anomaly(extractAnomalyDesc(anomaly), 1);
+        profiler.recordObservation(ano, 1);
     }
 
-    protected void signal(Object anomaly, String details) {
-        profiler.recordObservation(new AnomalyOccurrence(anomaly, details, 1), 1);
+    protected void signal(Enum<?> anomaly, String details) {
+        Anomaly ano = new Anomaly(extractAnomalyDesc(anomaly), details, 1);
+        profiler.recordObservation(ano, 1);
     }
 
-    protected void signal(Object anomaly, String format, Object...args) {
-        AnomalyOccurrence ano = new AnomalyOccurrence(anomaly, String.format(format, args), 1);
+    protected void signal(Enum<?> anomaly, String format, Object...args) {
+        Anomaly ano = new Anomaly(extractAnomalyDesc(anomaly), String.format(format, args), 1);
         profiler.recordObservation(ano, 1);
     }
 
@@ -107,13 +112,21 @@ public abstract class Module {
 
     //--------------------------------------- HELPERS --------------------------------------------\\
 
-     private static ProcedureDescription extractProcDesc(Enum<?> procDesc) {
+    private static ProcedureDescription extractProcDesc(Enum<?> procDesc) {
+        return extractAnnotation(procDesc, ProcedureDescription.class);
+    }
+
+    private static AnomalyDescription extractAnomalyDesc(Enum<?> anomalyDesc) {
+        return extractAnnotation(anomalyDesc, AnomalyDescription.class);
+    }
+
+    private static <T extends Annotation> T extractAnnotation(Enum<?> annotEnum, Class<T> clazz) {
         try {
-            Field field = procDesc.getClass().getField(procDesc.toString());
-            return field.getAnnotation(ProcedureDescription.class);
+            Field field = annotEnum.getClass().getField(annotEnum.toString());
+            return field.getAnnotation(clazz);
         } catch (Exception e) {
-            throw new RuntimeException(procDesc + " is not an enum field with the " 
-                    + ProcedureDescription.class.getSimpleName() + " annotation", e);
+            throw new RuntimeException(annotEnum + " is not an enum field "
+                    + "with the " + clazz.getSimpleName() + " annotation", e);
         }
     }
 }

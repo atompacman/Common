@@ -25,6 +25,13 @@ public class Norm {
 
     //--------------------------------------- GETTERS --------------------------------------------\\
 
+    public boolean doUniformRandomTest() {
+        return RandNumGen.nextDouble(0, 1) < value;
+    }
+
+
+    //--------------------------------------- GETTERS --------------------------------------------\\
+
     public double v() {
         return value;
     }

@@ -12,11 +12,19 @@ public final class Log {
     //====================================== CONSTANTS ===========================================\\
 
     private static final Logger LOGGER = LogManager.getRootLogger();
-    private static final int MSG_LENGTH_BEFORE_VERBOSE = 125;
+    private static final int MSG_LENGTH_BEFORE_VERBOSE = 130;
 
 
 
     //======================================= METHODS ============================================\\
+
+    public static void debug(Object msg) {
+        log(Level.DEBUG, 1, msg.toString());
+    }
+
+    public static void debug(String msg, Object...params) {
+        log(Level.DEBUG, 1, msg, params);
+    }
 
     public static void info(Object msg) {
         log(Level.INFO, 1, msg.toString());
@@ -24,6 +32,30 @@ public final class Log {
 
     public static void info(String msg, Object...params) {
         log(Level.INFO, 1, msg, params);
+    }
+
+    public static void warn(Object msg) {
+        log(Level.WARN, 1, msg.toString());
+    }
+
+    public static void warn(String msg, Object...params) {
+        log(Level.WARN, 1, msg, params);
+    }
+
+    public static void error(Object msg) {
+        log(Level.ERROR, 1, msg.toString());
+    }
+
+    public static void error(String msg, Object...params) {
+        log(Level.ERROR, 1, msg, params);
+    }
+
+    public static void title(Level lvl, String msg, Object...params) {
+        log(lvl, 1, StringHelper.title(String.format(msg, params)));
+    }
+
+    public static void title(Level lvl, int spaces, String msg, Object...params) {
+        log(lvl, 1, StringHelper.title(String.format(msg, params), spaces));
     }
 
     public static void log(Level lvl, int stackDepthModifier, String msg, Object...params) {
@@ -53,8 +85,8 @@ public final class Log {
         sb.append(String.format("[%5s ] ", lvl));
 
         // Append message
-        sb.append(msg);
+        sb.append(String.format(msg.toString(), params));
 
-        LOGGER.log(lvl, sb.toString(), params);
+        LOGGER.log(lvl, sb);
     }
 }

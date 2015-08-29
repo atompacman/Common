@@ -88,9 +88,11 @@ public final class Profiler {
         newProc.click();
 
         // Log new procedure start
-        LogEntry entry = new LogEntry(newProcDesc.name(), Level.INFO, 
-                newProc.getGeneration(), stackTrackLvlModifier + 1);
-        recordObservation(entry, stackTrackLvlModifier + 1);
+        if (!newProcDesc.name().equals(Module.DEFAULT_PROC_NAME)) {
+            LogEntry entry = new LogEntry(newProcDesc.name(), Level.INFO, 
+                    newProc.getGeneration(), stackTrackLvlModifier + 1);
+            recordObservation(entry, stackTrackLvlModifier + 1);
+        }
     }
 
     private <T extends Module> Procedure getParentProcedure(T callingModule) {

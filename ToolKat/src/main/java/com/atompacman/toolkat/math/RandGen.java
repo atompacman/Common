@@ -2,7 +2,7 @@ package com.atompacman.toolkat.math;
 
 import java.util.Random;
 
-public class RandNumGen {
+public class RandGen {
 
     //==================================== STATIC FIELDS =========================================\\
 
@@ -23,7 +23,7 @@ public class RandNumGen {
     //------------------------------------ SET NEW SEED ------------------------------------------\\
 
     public static void setNewSeed(long seed) {
-        randGen = new Random(seed);
+        randGen.setSeed(seed);
     }
 
 

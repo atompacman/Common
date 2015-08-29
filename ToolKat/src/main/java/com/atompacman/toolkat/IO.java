@@ -58,7 +58,7 @@ public class IO {
         return new File(url.getPath());
     }
     
-    public static InputStream getResourceasStream(String path) throws FileNotFoundException {
+    public static InputStream getResourceAsStream(String path) throws FileNotFoundException {
         InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream(path);
         if (is == null) {
             throw new FileNotFoundException("Cannot find resource \"" + path + "\".");

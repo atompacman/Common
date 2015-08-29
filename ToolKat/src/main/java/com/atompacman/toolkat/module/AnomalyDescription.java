@@ -11,21 +11,17 @@ public @interface AnomalyDescription {
 
     //===================================== INNER TYPES ==========================================\\
 
-    public enum Impact {
+    public enum Severity {
         NONE, MINIMAL, MODERATE, CRITIC, FATAL;
     }
 
-    public enum Recoverability {
-        UNKNOWN, TRIVIAL, NORMAL, HARD, IMPOSSIBLE;
-    }
 
 
-    
     //======================================= FIELDS =============================================\\
 
-    String                  name();
-    String                  description();
-    String                  consequences();
-    Impact                  impact();
-    Recoverability          recoverability();
+    String   name();
+    String   detailsFormat()    default "%s";
+    String   description()      default "UNSPECIFIED";
+    String   consequences()     default "UNSPECIFIED";
+    Severity severity()         default Severity.NONE;
 }

@@ -8,7 +8,7 @@ public class LogEntry extends Observation {
 
     //====================================== CONSTANTS ===========================================\\
 
-    private static final int NO_TITLE = -1;
+    public static final int NO_TITLE = -1;
 
 
 

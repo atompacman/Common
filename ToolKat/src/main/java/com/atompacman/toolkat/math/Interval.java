@@ -4,8 +4,8 @@ public class Interval<T extends Comparable<T>> {
 
     //======================================= FIELDS =============================================\\
 
-    private T beg;
-    private T end;
+    private final T beg;
+    private final T end;
 
 
 

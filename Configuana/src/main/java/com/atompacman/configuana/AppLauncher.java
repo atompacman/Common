@@ -109,7 +109,7 @@ public class AppLauncher {
         String appFilePath = CONFIGUANA_DIR_IN_JAR + APP_FILE; 
         InputStream is = null;
         try {
-            is = IO.getResourceasStream(appFilePath);
+            is = IO.getResourceAsStream(appFilePath);
         } catch (FileNotFoundException e1) {
             Throw.aRuntime(AppLauncherException.class, "Could not find a "
                     + "configuana app file at \"" + appFilePath + "\"");
@@ -191,7 +191,7 @@ public class AppLauncher {
             }
         };
         try {
-            libInfo.load(IO.getResourceasStream(CONFIGUANA_DIR_IN_JAR + infoFile));
+            libInfo.load(IO.getResourceAsStream(CONFIGUANA_DIR_IN_JAR + infoFile));
         } catch (IOException e) {
             Throw.aRuntime(AppLauncherException.class, "Could not find "
                     + "configuana library info file \"" + infoFile + "\"");

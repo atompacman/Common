@@ -5,7 +5,25 @@ import java.lang.reflect.Field;
 
 import org.apache.logging.log4j.Level;
 
+import com.atompacman.toolkat.exception.AbstractException;
+import com.atompacman.toolkat.exception.Throw;
+
 public abstract class Module {
+
+    //====================================== CONSTANTS ===========================================\\
+
+    public static final String DEFAULT_PROC_NAME = "Default procedure";
+
+
+
+    //===================================== INNER TYPES ==========================================\\
+
+    public enum Default {
+        @ProcedureDescription(name = DEFAULT_PROC_NAME)
+        DEFAULT_PROCEDURE;
+    }
+
+
 
     //======================================= FIELDS =============================================\\
 
@@ -16,24 +34,24 @@ public abstract class Module {
 
     //======================================= METHODS ============================================\\
 
-    //--------------------------------- PROTECTED CONSTRUCTOR ------------------------------------\\
+    //--------------------------------- PUBLIC CONSTRUCTORS --------------------------------------\\
 
-    protected Module() {
+    public Module() {
+        this(Level.INFO);
+    }
+
+    public Module(Level verbose) {
         this.profiler = new Profiler();
-        this.verbose  = Level.INFO;
+        this.verbose  = verbose;
+
+        procedure(Default.DEFAULT_PROCEDURE);
     }
 
 
-    //----------------------------------- CREATE SUBMODULE ---------------------------------------\\
+    //---------------------------------- REGISTER SUBMODULE --------------------------------------\\
 
-    protected <T extends Module> T createSubmodule(Class<T> clazz) {
-        try {
-            T module = clazz.newInstance();
-            module.setProfiler(profiler);
-            return module;
-        } catch (InstantiationException | IllegalAccessException e) {
-            throw new RuntimeException("Implemented modules must have a default constructor.", e);
-        }
+    protected void registerSubmodule(Module subModule) {
+        subModule.setProfiler(profiler);
     }
 
 
@@ -55,6 +73,11 @@ public abstract class Module {
         profiler.recordObservation(entry, 1);
     }
 
+    protected void log(int stackTrackModifier, String format, Object...args) {
+        LogEntry entry = new LogEntry(String.format(format, args), verbose, 1);
+        profiler.recordObservation(entry, stackTrackModifier + 1);
+    }
+
     protected void log(Level verbose, String format, Object...args) {
         LogEntry entry = new LogEntry(String.format(format, args), verbose, 1);
         profiler.recordObservation(entry, 1);
@@ -65,6 +88,11 @@ public abstract class Module {
         profiler.recordObservation(entry, 1);
     }
 
+    protected void log(Level verbose, int titleSpacing, int stModif, String format, Object...args) {
+        LogEntry entry = new LogEntry(String.format(format, args), verbose, titleSpacing, 1);
+        profiler.recordObservation(entry, stModif + 1);
+    }
+
 
     //--------------------------------------- ANOMALY --------------------------------------------\\
 
@@ -73,20 +101,34 @@ public abstract class Module {
         profiler.recordObservation(ano, 1);
     }
 
-    protected void signal(Enum<?> anomaly, String details) {
-        Anomaly ano = new Anomaly(extractAnomalyDesc(anomaly), details, 1);
+    protected void signal(Enum<?> anomaly, Object...args) {
+        Anomaly ano = new Anomaly(extractAnomalyDesc(anomaly), 1, args);
         profiler.recordObservation(ano, 1);
     }
 
-    protected void signal(Enum<?> anomaly, String format, Object...args) {
-        Anomaly ano = new Anomaly(extractAnomalyDesc(anomaly), String.format(format, args), 1);
+    protected <T extends AbstractException> void signalException(Enum<?>   anomaly, 
+            Class<T>  exceptionClass, 
+            Object... args) throws T {
+
+        Anomaly ano = new Anomaly(extractAnomalyDesc(anomaly), 1, args);
         profiler.recordObservation(ano, 1);
+        Throw.a(exceptionClass, ano.getDetails());
+    }
+
+    protected <T extends AbstractException> void signalException(Enum<?>   anomaly, 
+            Class<T>  exceptionClass, 
+            Throwable cause, 
+            Object... args) throws T {
+
+        Anomaly ano = new Anomaly(extractAnomalyDesc(anomaly), 1, args);
+        profiler.recordObservation(ano, 1);
+        Throw.a(exceptionClass, ano.getDetails(), cause);
     }
 
 
     //--------------------------------------- SETTERS --------------------------------------------\\
 
-    protected void setProfiler(Profiler profiler) {
+    private void setProfiler(Profiler profiler) {
         this.profiler = profiler;
     }
 

@@ -19,10 +19,17 @@ public class Anomaly extends Observation {
         this(desc, null, stackTrackLvlModifier + 1);
     }
 
-    Anomaly(AnomalyDescription desc, String details, int stackTrackLvlModifier) {
+    Anomaly(AnomalyDescription desc, int stackTrackLvlModifier, Object...detailsArgs) {
+        this(desc, String.format(desc.detailsFormat(), detailsArgs), stackTrackLvlModifier + 1);
+    }
+
+
+    //--------------------------------- PRIVATE CONSTRUCTORS -------------------------------------\\
+
+    private Anomaly(AnomalyDescription desc, String details, int stackTrackLvlModifier) {
         super(stackTrackLvlModifier);
         this.description = desc;
-        this.details = details;
+        this.details     = details;
     }
 
 
@@ -47,14 +54,14 @@ public class Anomaly extends Observation {
     //--------------------------------------- FORMAT ---------------------------------------------\\
 
     public Level verbose() {
-        switch (description.impact()) {
+        switch (description.severity()) {
         case FATAL:     return Level.FATAL;
-        case CRITIC: 	return Level.WARN;
-        case MODERATE: 	return Level.INFO;
-        case MINIMAL:   return Level.DEBUG;
-        case NONE: 		return Level.TRACE;
+        case CRITIC:    return Level.ERROR;
+        case MODERATE: 	return Level.WARN;
+        case MINIMAL:   return Level.INFO;
+        case NONE:      return Level.DEBUG;
+        default:        return null;
         }
-        return null;
     }
 
     public String format() {

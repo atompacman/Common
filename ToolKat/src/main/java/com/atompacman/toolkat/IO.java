@@ -5,6 +5,9 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.nio.ByteBuffer;
+
+import org.apache.commons.io.IOUtils;
 
 public class IO {
 
@@ -64,5 +67,9 @@ public class IO {
             throw new FileNotFoundException("Cannot find resource \"" + path + "\".");
         }
         return is;
+    }
+
+    public static ByteBuffer getResourceByteBuffer(String path) throws IOException {
+        return ByteBuffer.wrap(IOUtils.toByteArray(getResourceAsStream(path)));
     }
 }

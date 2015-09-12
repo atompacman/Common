@@ -2,7 +2,7 @@ package com.atompacman.toolkat.misc;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 public class EnumRepresConstruc<A> {
@@ -30,11 +30,7 @@ public class EnumRepresConstruc<A> {
 
     public EnumRepresConstruc(Class<A> clazz, String staticConstrucName) {
         this.clazz = clazz;
-        detectEnumBasedStaticConstructors(staticConstrucName);
-    }
-
-    private void detectEnumBasedStaticConstructors(String staticConstrucName) {
-        this.staticConstruc = new ArrayList<Method>();
+        this.staticConstruc = new LinkedList<Method>();
 
         for (Method method : clazz.getMethods()) {
             if (!method.getName().equals(staticConstrucName)) {
@@ -47,8 +43,8 @@ public class EnumRepresConstruc<A> {
                 continue;
             }
             boolean typesAreAllEnums = true;
-            for (Class<?> clazz : method.getParameterTypes()) {
-                if (!(clazz.isEnum())) {
+            for (Class<?> clazzz : method.getParameterTypes()) {
+                if (!(clazzz.isEnum())) {
                     typesAreAllEnums = false;
                     break;
                 }

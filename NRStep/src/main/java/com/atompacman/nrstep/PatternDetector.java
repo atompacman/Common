@@ -3,33 +3,25 @@ package com.atompacman.nrstep;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import com.atompacman.toolkat.exception.Throw;
 import com.atompacman.toolkat.math.Interval;
+import com.atompacman.toolkat.misc.Log;
 
-public class PatternDetector {
-
-    //====================================== CONSTANTS ===========================================\\
-
-    private static final Logger logger = LogManager.getLogger(PatternDetector.class);
-
-
+public class PatternDetector<T> {
 
     //======================================= FIELDS =============================================\\
 
     /** Processed sequence */
-    private Sequence seq;
+    private Sequence<T> seq;
 
     /** Processed sequence length */
     private int len;
 
     /** Accepted patterns tree */
-    private PatternTree apt;
+    private PatternTree<T> apt;
 
     /** Covered patterns tree */
-    private PatternTree cpt;
+    private PatternTree<T> cpt;
 
     /** Accepted patterns intervals */
     private List<Interval<Integer>> interv;
@@ -43,17 +35,17 @@ public class PatternDetector {
 
     //--------------------------------------- DETECT ---------------------------------------------\\
 
-    public PatternTree detect(Sequence sequence) {
+    public PatternTree<T> detect(Sequence<T> sequence) {
         return detect(sequence, 1);
     }
 
-    public PatternTree detect(Sequence sequence, int minPatternLength) {
-        logger.info("Detecting patterns in sequence \"{}\".", sequence.toJSON());
+    public PatternTree<T> detect(Sequence<T> sequence, int minPatternLength) {
+        Log.info("Detecting patterns in sequence \"%s\".", sequence);
 
         seq = sequence;
         len = sequence.size();
-        apt = new PatternTree(seq);
-        cpt = new PatternTree(seq);
+        apt = new PatternTree<>(seq);
+        cpt = new PatternTree<>(seq);
         interv = new ArrayList<Interval<Integer>>();
         minPatLen = minPatternLength;
 
@@ -70,12 +62,12 @@ public class PatternDetector {
         }
 
         for (int i = len / 2; i >= minPatLen; --i) {
-            logger.debug("Looking for patterns of size {}. Patterns "
-                    + "so far: {}.", i, apt.getAllPatterns().size());
+            Log.debug("Looking for patterns of size %d. Patterns so far: %d.", 
+                    i, apt.getAllPatterns().size());
             detect(i);
         }
 
-        logger.info("Done detecting patterns. {} in total.", apt.getAllPatterns().size());
+        Log.info("Done detecting patterns. %s in total.", apt.getAllPatterns().size());
 
         return apt;
     }
@@ -83,7 +75,7 @@ public class PatternDetector {
     private void detect(int subSeqLen) {
         for (int refSeqBeg = 0; refSeqBeg < len - 2 * subSeqLen + 1; ++refSeqBeg) {
             int refSeqEnd = refSeqBeg + subSeqLen;
-            Sequence refSeq = seq.subSequence(refSeqBeg, refSeqEnd);
+            Sequence<T> refSeq = seq.subSequence(refSeqBeg, refSeqEnd);
 
             if (cpt.contains(refSeq)) {
                 continue;
@@ -115,13 +107,13 @@ public class PatternDetector {
         }
     }
 
-    private List<Integer> findMatches(Sequence refSeq, int refSeqEnd) {
+    private List<Integer> findMatches(Sequence<T> refSeq, int refSeqEnd) {
         List<Integer> matches = new ArrayList<Integer>();
         int subSeqLen = refSeq.size();
 
         for (int cmpSeqBeg = refSeqEnd; cmpSeqBeg < len - subSeqLen + 1; ++cmpSeqBeg) {
-            Sequence cmpSeq = seq.subSequence(cmpSeqBeg, cmpSeqBeg + subSeqLen);
-            if (areEqual(refSeq, cmpSeq)) {
+            Sequence<T> cmpSeq = seq.subSequence(cmpSeqBeg, cmpSeqBeg + subSeqLen);
+            if (refSeq.equals(cmpSeq)) {
                 matches.add(cmpSeqBeg);
                 cmpSeqBeg += subSeqLen - 1;
             }
@@ -157,11 +149,11 @@ public class PatternDetector {
     private boolean areLinkedByAShorterPattern(int seqBegA, int seqBegB, int subSeqLen) {
         for (int patLen = 1; patLen < subSeqLen; ++patLen) {
             int patSeqEnd = seqBegA + patLen;
-            Sequence patSeq = seq.subSequence(seqBegA, patSeqEnd);
+            Sequence<T> patSeq = seq.subSequence(seqBegA, patSeqEnd);
             int altSeqBeg = patSeqEnd;
-            Sequence altSeq = seq.subSequence(altSeqBeg, altSeqBeg + patLen);
+            Sequence<T> altSeq = seq.subSequence(altSeqBeg, altSeqBeg + patLen);
 
-            while (areEqual(patSeq, altSeq) && altSeqBeg < seqBegB) {
+            while (patSeq.equals(altSeq) && altSeqBeg < seqBegB) {
                 altSeqBeg += patLen;
                 altSeq = seq.subSequence(altSeqBeg, altSeqBeg + patLen);
             }
@@ -195,34 +187,11 @@ public class PatternDetector {
         return false;
     }
 
-    private void addOccurances(Sequence subSeq,	List<Integer> matches) {
-        apt.addOccurrences(subSeq, matches, new PatternDetector().detect(subSeq, minPatLen));
+    private void addOccurances(Sequence<T> subSeq,	List<Integer> matches) {
+        apt.addOccurrences(subSeq, matches, new PatternDetector<T>().detect(subSeq, minPatLen));
         int seqLen = subSeq.size();
         for (int matchBeg : matches) {
             interv.add(new Interval<Integer>(matchBeg, matchBeg + seqLen));
         }
-    }
-
-
-
-    //==================================== STATIC METHODS ========================================\\
-
-    //-------------------------------------- ARE EQUAL -------------------------------------------\\
-
-    static boolean areEqual(Sequence a, Sequence b) {
-        if (a.size() != b.size()) {
-            throw new IllegalArgumentException("Cannot compare sub-sequences of different length.");
-        }
-        for (int i = 0; i < a.size(); ++i) {
-            if (!areEqual(a.get(i), b.get(i))) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    @SuppressWarnings("unchecked")
-    static <T extends PatternElement<T>> boolean areEqual(PatternElement<?> a, PatternElement<?> b){
-        return a.getClass() == b.getClass() && ((T) a).isEqualTo((T) b);
     }
 }

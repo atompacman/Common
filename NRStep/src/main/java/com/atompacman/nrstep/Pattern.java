@@ -1,19 +1,15 @@
 package com.atompacman.nrstep;
 
-import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import com.atompacman.toolkat.exception.Throw;
-import com.atompacman.toolkat.json.JSONDeserializationException;
-import com.atompacman.toolkat.json.JSONSerializable;
+import com.atompacman.toolkat.misc.JSONUtils;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class Pattern implements JSONSerializable {
+public class Pattern<T> {
 
     //====================================== CONSTANTS ===========================================\\
 
@@ -25,9 +21,9 @@ public class Pattern implements JSONSerializable {
 
     //======================================= FIELDS =============================================\\
 
-    private Sequence     seq;
-    private Set<Integer> startPos;
-    private PatternTree  subPat;
+    private Sequence<T>    seq;
+    private Set<Integer>   startPos;
+    private PatternTree<T> subPat;
 
 
 
@@ -35,37 +31,14 @@ public class Pattern implements JSONSerializable {
 
     //---------------------------------- PACKAGE CONSTRUCTOR -------------------------------------\\
 
-    Pattern(Sequence seq) {
+    @JsonCreator
+    Pattern(@JsonProperty("sequence") Sequence<T> seq) {
         if (seq.isEmpty()) {
             Throw.aRuntime(NRStepException.class, "Cannot create a pattern from an empty sequence");
         }
-        this.seq = seq;
+        this.seq      = seq;
         this.startPos = new LinkedHashSet<Integer>();
-    }
-
-
-    //-------------------------------- JSON STATIC CONSTRUCTOR -----------------------------------\\
-
-    static Pattern fromJSON(JSONObject obj, Class<? extends PatternElement<?>> elementClass) {
-        Pattern occ = null;
-        try {
-            JSONArray array = (JSONArray) obj.get(JSON_SEQUENCE_ATTRIBUTE);
-            Sequence seq = Sequence.fromJSON(array, elementClass);
-            occ = new Pattern(seq);
-            array = (JSONArray) obj.get(JSON_START_POSITIONS_ATTRIBUTE);
-            List<Integer> startPos = new ArrayList<>();
-            for (int i = 0; i < array.length(); ++i) {
-                startPos.add(array.getInt(i));
-            }
-            occ.addOccurrences(startPos);
-            if (obj.has(JSON_INNER_SEQUENCES_ATTRIBUTE)) {
-                JSONArray iog = (JSONArray) obj.get(JSON_INNER_SEQUENCES_ATTRIBUTE);
-                occ.setSubPatterns(PatternTree.fromJSON(iog, seq));
-            }
-        } catch (Exception e) {
-            JSONDeserializationException.causedBy(obj, Pattern.class, e);
-        }
-        return occ;
+        this.subPat   = null;
     }
 
 
@@ -84,14 +57,14 @@ public class Pattern implements JSONSerializable {
 
     //--------------------------------- SET SUB OCCURRENCES --------------------------------------\\
 
-    public void setSubPatterns(PatternTree subPat) {
+    public void setSubPatterns(PatternTree<T> subPat) {
         this.subPat = subPat;
     }
 
 
     //--------------------------------------- GETTERS --------------------------------------------\\
 
-    public Sequence getSequence() {
+    public Sequence<T> getSequence() {
         return seq;
     }
 
@@ -99,39 +72,60 @@ public class Pattern implements JSONSerializable {
         return startPos;
     }
 
-    public PatternTree getSubPatterns() {
+    public PatternTree<T> getSubPatterns() {
         return subPat;
     }
 
-    public int getNumAppearances() {
+    
+    //---------------------------------------- STATE ---------------------------------------------\\
+
+    public int numAppearances() {
         return startPos.size();
     }
 
 
-    //---------------------------------------- JSON ----------------------------------------------\\
+    //--------------------------------------- EQUALS ---------------------------------------------\\
 
-    public JSONObject toJSON() {
-        JSONObject obj = new JSONObject();
-        try {
-            obj.put(JSON_SEQUENCE_ATTRIBUTE, seq.toJSON());
-            obj.put(JSON_START_POSITIONS_ATTRIBUTE, startPos);
-            if (subPat != null && !subPat.isEmpty()) {
-                JSONArray array = new JSONArray();
-                for (Pattern occ : subPat.getAllPatterns()) {
-                    array.put(occ.toJSON());
-                }
-                obj.put(JSON_INNER_SEQUENCES_ATTRIBUTE, array);
-            }
-        } catch (JSONException e) {
-            throw new RuntimeException(e);
-        }
-        return obj;
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((seq == null) ? 0 : seq.hashCode());
+        result = prime * result
+                + ((startPos == null) ? 0 : startPos.hashCode());
+        result = prime * result + ((subPat == null) ? 0 : subPat.hashCode());
+        return result;
     }
 
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        Pattern<?> other = (Pattern<?>) obj;
+        if (seq == null) {
+            if (other.seq != null)
+                return false;
+        } else if (!seq.equals(other.seq))
+            return false;
+        if (startPos == null) {
+            if (other.startPos != null)
+                return false;
+        } else if (!startPos.equals(other.startPos))
+            return false;
+        if (subPat == null) {
+            if (other.subPat != null)
+                return false;
+        } else if (!subPat.equals(other.subPat))
+            return false;
+        return true;
+    }
 
+    
     //-------------------------------------- TO STRING -------------------------------------------\\
 
     public String toString() {
-        return toJSON().toString();
+        return JSONUtils.toRobustJSONString(this);
     }
 }

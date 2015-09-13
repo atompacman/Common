@@ -1,30 +1,26 @@
 package com.atompacman.nrstep;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
+import java.io.IOException;
 import java.util.Arrays;
 
-import org.json.JSONArray;
-import org.json.JSONException;
 import org.junit.Test;
+
+import com.atompacman.toolkat.misc.JSONUtils;
 
 public class TestPattern {
 
     //================================== FUNCTIONNAL TESTS =======================================\\
 
     @Test
-    public void assertCorrectJSONSerialization() {
-        Pattern occ = new Pattern(new Sequence(Letter.valueOf("seuilsuvbd")));
-        occ.addOccurrences(Arrays.asList(1, 42, 252));
-        assertEquals("{\"POS\":[1,42,252],\"SEQ\":[\"s\",\"e\",\"u\",\"i\",\"l\","
-                + "\"s\",\"u\",\"v\",\"b\",\"d\"]}", occ.toJSON().toString());
-    }
-
-    @Test
-    public void assertCorrectJSONDeserialization() throws JSONException {
-        JSONArray array = new JSONArray("[\"a\",\"d\",\"a\",\"d\",\"j\",\"a\"]");
-        Sequence seq = Sequence.fromJSON(array, Letter.class);
-        assertTrue(((Letter) seq.get(4)).isEqualTo(new Letter('j')));
+    public void assertCorrectJSONSerialization() throws IOException {
+        final String testJSON =
+                "{\"sequence\":[\"y\",\"o\"],\"subPatterns\":null,\"startingPositions\":[1,3]}";
+        final Pattern<String> testPat = new Pattern<String>(
+                new Sequence<String>(Arrays.asList("y","o")));
+        testPat.addOccurrences(Arrays.asList(1,3));
+                
+        assertEquals(testPat, JSONUtils.parse(testJSON, Pattern.class));
     }
 }

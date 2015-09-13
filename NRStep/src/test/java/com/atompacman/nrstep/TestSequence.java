@@ -1,29 +1,26 @@
 package com.atompacman.nrstep;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
-import org.json.JSONArray;
-import org.json.JSONException;
+import java.io.IOException;
+import java.util.Arrays;
+
 import org.junit.Test;
 
+import com.atompacman.toolkat.misc.JSONUtils;
+
 public class TestSequence {
+
 
     //================================== FUNCTIONNAL TESTS =======================================\\
 
     @Test
-    public void assertCorrectJSONSerialization() {
-        Sequence seq = new Sequence(Letter.valueOf("adadja"));
-        assertEquals("[a, d, a, d, j, a]", seq.toJSON().toString());
+    @SuppressWarnings("unchecked")
+    public void assertCorrectJSONSerialization() throws IOException {
+        final String json = "[\"y\",\"o\"]";
+        final Sequence<Character> seq = new Sequence<>(Arrays.asList('y', 'o'));
 
-        seq = new Sequence(Letter.valueOf(""));
-        assertEquals("[]", seq.toJSON().toString());
-    }
-
-    @Test
-    public void assertCorrectJSONDeserialization() throws JSONException {
-        JSONArray array = new JSONArray("[a,d,a,d,j,a]");
-        Sequence seq = Sequence.fromJSON(array, Letter.class);
-        assertTrue(((Letter) seq.get(4)).isEqualTo(new Letter('j')));
+        assertEquals(json, JSONUtils.toJSONString(seq));
+        assertEquals(seq,  JSONUtils.parseCollection(json,Sequence.class,Character.class));
     }
 }

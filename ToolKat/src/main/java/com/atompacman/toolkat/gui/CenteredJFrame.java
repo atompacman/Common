@@ -12,10 +12,22 @@ import javax.swing.JTextArea;
 import javax.swing.SwingConstants;
 
 @SuppressWarnings("serial")
-public abstract class AbstractJFrame extends JFrame {
+public class CenteredJFrame extends JFrame {
 
     //======================================= METHODS ============================================\\
 
+    //--------------------------------- PUBLIC CONSTRUCTORS --------------------------------------\\
+
+    public CenteredJFrame(int width, int height) {
+        this(new Dimension(width, height));
+    }
+
+    public CenteredJFrame(Dimension winDim) {
+        setSize(winDim);
+        centerFrame();
+    }
+
+    
     //------------------------------------ CENTER WINDOW -----------------------------------------\\
 
     protected void centerFrame() {

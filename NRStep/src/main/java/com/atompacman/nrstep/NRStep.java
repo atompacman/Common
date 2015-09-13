@@ -3,20 +3,13 @@ package com.atompacman.nrstep;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.Level;
 
 import com.atompacman.configuana.Lib;
 import com.atompacman.configuana.StrictParam;
-import com.atompacman.toolkat.misc.StringHelper;
+import com.atompacman.toolkat.misc.Log;
 
 public class NRStep extends Lib {
-
-    //====================================== CONSTANTS ===========================================\\
-
-    private static final Logger logger = LogManager.getLogger(NRStep.class);
-
-
 
     //======================================= METHODS ============================================\\
 
@@ -25,7 +18,7 @@ public class NRStep extends Lib {
     }
 
     public void init() {
-        logger.info(StringHelper.title(getName() + " " + getVersion()));
+        Log.title(Level.INFO, "%s %s", getName(), getVersion());
     }
 
     public void finalize() {

@@ -4,7 +4,7 @@ public class Norm {
 
     //======================================= FIELDS =============================================\\
 
-    private double value;
+    protected double value;
 
 
 
@@ -25,14 +25,33 @@ public class Norm {
 
     //--------------------------------------- GETTERS --------------------------------------------\\
 
-    public boolean doUniformRandomTest() {
-        return RandGen.nextDouble(0, 1) < value;
-    }
-
-
-    //--------------------------------------- GETTERS --------------------------------------------\\
-
     public double v() {
         return value;
     }
+
+
+    //--------------------------------------- EQUALS ---------------------------------------------\\
+
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        long temp;
+        temp = Double.doubleToLongBits(value);
+        result = prime * result + (int) (temp ^ (temp >>> 32));
+        return result;
+    }
+
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        Norm other = (Norm) obj;
+        if (Double.doubleToLongBits(value) != Double
+                .doubleToLongBits(other.value))
+            return false;
+        return true;
+    }    
 }

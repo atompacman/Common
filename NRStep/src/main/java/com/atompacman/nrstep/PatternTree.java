@@ -6,24 +6,22 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
-
 import com.atompacman.toolkat.exception.Throw;
-import com.atompacman.toolkat.json.JSONDeserializationException;
-import com.atompacman.toolkat.json.JSONSerializable;
+import com.atompacman.toolkat.misc.JSONUtils;
+import com.fasterxml.jackson.annotation.JsonGetter;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
-public class PatternTree implements JSONSerializable {
+public class PatternTree<E> {
 
     //===================================== INNER TYPES ==========================================\\
 
-    private class Node {
+    private class Node<T> {
 
         //===================================== FIELDS ===========================================\\
 
-        private PatternElement<?> elem;
-        private List<Node>        children;
-        private Pattern           pat;
+        private T             elem;
+        private List<Node<T>> children;
+        private Pattern<T>    pat;
 
 
 
@@ -31,38 +29,39 @@ public class PatternTree implements JSONSerializable {
 
         //-------------------------------- PUBLIC CONSTRUCTOR ------------------------------------\\
 
-        public Node(Sequence sequence) {
-            this.children = new ArrayList<Node>();
+        public Node(Sequence<T> sequence) {
+            this.children = new ArrayList<>();
             if (!sequence.isEmpty()) {
                 this.elem = sequence.get(sequence.size() - 1);
-                this.pat = new Pattern(sequence);
+                this.pat = new Pattern<>(sequence);
             }
         }
 
 
         //--------------------------------- ADD OCCURRENCE ---------------------------------------\\
 
-        public void addOccurrences(Sequence sequence, List<Integer> startPos, 
-                PatternTree subPat, int depth) {
+        @SuppressWarnings("unchecked")
+        public void addOccurrences(Sequence<T> sequence, List<Integer> startPos, 
+                                   PatternTree<T> subPat, int depth) {
 
             if (depth == sequence.size()) {
-                if (pat.getNumAppearances() == 0) {
-                    PatternTree.this.addPattern(pat);
+                if (pat.numAppearances() == 0) {
+                    PatternTree.this.addPattern((Pattern<E>) pat);
                 }
                 pat.addOccurrences(startPos);
                 pat.setSubPatterns(subPat);
             } else {
-                PatternElement<?> elem = sequence.get(depth);
-                Node next = null;
+                T elem = sequence.get(depth);
+                Node<T> next = null;
 
-                for (Node child : children) {
-                    if (PatternDetector.areEqual(child.elem, elem)) {
+                for (Node<T> child : children) {
+                    if (child.elem.equals(elem)) {
                         next = child;
                         break;
                     }
                 }
                 if (next == null) {
-                    next = new Node(sequence.subSequence(0, depth + 1));
+                    next = new Node<>(sequence.subSequence(0, depth + 1));
                     children.add(next);
                 }
                 next.addOccurrences(sequence, startPos, subPat, depth + 1);
@@ -72,13 +71,13 @@ public class PatternTree implements JSONSerializable {
 
         //------------------------------------ CONTAINS ------------------------------------------\\
 
-        public boolean contains(Sequence sequence, int depth) {
-            PatternElement<?> elem = sequence.get(depth);
+        public boolean contains(Sequence<T> sequence, int depth) {
+            T elem = sequence.get(depth);
 
-            for (Node child : children) {
-                if (PatternDetector.areEqual(child.elem, elem)) {
+            for (Node<T> child : children) {
+                if (child.elem.equals(elem)) {
                     if (depth == sequence.size() - 1) {
-                        return child.pat.getNumAppearances() != 0;
+                        return child.pat.numAppearances() != 0;
                     } else {
                         return child.contains(sequence, depth + 1);
                     }
@@ -92,10 +91,10 @@ public class PatternTree implements JSONSerializable {
 
     //======================================= FIELDS =============================================\\
 
-    private final Sequence        seq;
-    private final int             seqLength;
-    private final Node            root;
-    private final List<Pattern>[] patterns;
+    private final Sequence<E>        seq;
+    private final int                seqLength;
+    private final Node<E>            root;
+    private final List<Pattern<E>>[] patterns;
 
 
 
@@ -104,62 +103,30 @@ public class PatternTree implements JSONSerializable {
     //---------------------------------- PACKAGE CONSTRUCTOR -------------------------------------\\
 
     @SuppressWarnings("unchecked")
-    PatternTree(Sequence sequence) {
-        this.seq = sequence;
-        this.seqLength = sequence.size();
-        this.root = new Node(new Sequence());
-        this.patterns = new List[seqLength / 2];
+    PatternTree(Sequence<E> seq) {
+        this.seq       = seq;
+        this.seqLength = seq.size();
+        this.root      = new Node<>(new Sequence<E>());
+        this.patterns  = new List[seqLength / 2];
+        
         for (int i = 0; i < seqLength / 2; ++i) {
-            patterns[i] = new ArrayList<Pattern>();
+            patterns[i] = new ArrayList<>();
         }
     }
-
-
-    //-------------------------------- JSON STATIC CONSTRUCTOR -----------------------------------\\
-
-    static PatternTree fromJSON(JSONObject obj, Class<? extends PatternElement<?>> elementClass) {
-        PatternTree og = null;
-        try {
-            JSONArray array = (JSONArray) obj.get(Pattern.JSON_SEQUENCE_ATTRIBUTE);
-            og = new PatternTree(Sequence.fromJSON(array, elementClass));
-            array = (JSONArray) obj.get(Pattern.JSON_INNER_SEQUENCES_ATTRIBUTE);
-            for (int i = 0; i < array.length(); ++i) {
-                og.addPattern(Pattern.fromJSON(array.getJSONObject(i), elementClass));
-            }
-        } catch (Exception e) {
-            JSONDeserializationException.causedBy(obj, PatternTree.class, e);
-        }
-        return og;
-    }
-
-    @SuppressWarnings("unchecked")
-    static PatternTree fromJSON(JSONArray sub, Sequence seq) {
-        PatternTree og = null;
-        try {
-            og = new PatternTree(seq);
-            for (int i = 0; i < sub.length(); ++i) {
-                og.addPattern(Pattern.fromJSON(sub.getJSONObject(i),
-                        (Class<? extends PatternElement<?>>) seq.get(0).getClass()));
-            }
-        } catch (Exception e) {
-            JSONDeserializationException.causedBy(sub, PatternTree.class, e);
-        }
-        return og;
-    }
-
+    
 
     //----------------------------------- ADD OCCURRENCE -----------------------------------------\\
 
-    public void addOccurrence(Sequence sequence, int startPos) {
+    public void addOccurrence(Sequence<E> sequence, int startPos) {
         addOccurrences(sequence, Arrays.asList(startPos), null);
     }
 
-    public void addOccurrences(Sequence sequence, List<Integer> startPos) {
+    public void addOccurrences(Sequence<E> sequence, List<Integer> startPos) {
         addOccurrences(sequence, startPos, null);
     }
 
-    public void addOccurrences(Sequence sequence, List<Integer> startPos, 
-            PatternTree subPatterns) {
+    public void addOccurrences(Sequence<E> sequence, List<Integer> startPos, 
+                               PatternTree<E> subPatterns) {
 
         try {
             if (sequence.isEmpty()) {
@@ -182,7 +149,7 @@ public class PatternTree implements JSONSerializable {
         root.addOccurrences(sequence, startPos, subPatterns, 0);
     }
 
-    private void addPattern(Pattern pattern) {
+    private void addPattern(Pattern<E> pattern) {
         int seqLength = pattern.getSequence().size();
         patterns[seqLength - 1].add(pattern);
     }
@@ -190,34 +157,38 @@ public class PatternTree implements JSONSerializable {
 
     //----------------------------------- GET PATTERNS -------------------------------------------\\
 
-    public List<Pattern> getAllPatterns() {
-        List<Pattern> output = new ArrayList<Pattern>();
-        for (List<Pattern> lengthPat : patterns) {
+    @JsonGetter("patterns")
+    public List<Pattern<E>> getAllPatterns() {
+        List<Pattern<E>> output = new ArrayList<>();
+        for (List<Pattern<E>> lengthPat : patterns) {
             output.addAll(lengthPat);
         }
         return output;
     }
 
-    public List<List<Pattern>> getPatternsByLength() {
+    @JsonIgnore
+    public List<List<Pattern<E>>> getPatternsByLength() {
         return Arrays.asList(patterns);
     }
 
-    public List<Pattern> getPatternOfLength(int length) {
+    @JsonIgnore
+    public List<Pattern<E>> getPatternOfLength(int length) {
         if (length > patterns.length + 1 || length <= 0) {
-            return new ArrayList<Pattern>();
+            return new ArrayList<Pattern<E>>();
         } else {
             return patterns[length - 1];
         }
     }
 
-    public Map<Integer, List<Pattern>> getPatternsByNumOccurrences() {
-        Map<Integer, List<Pattern>> output = new HashMap<Integer, List<Pattern>>();
-        for (List<Pattern> lengthPat : patterns) {
-            for (Pattern pat : lengthPat) {
-                int numApp = pat.getNumAppearances();
-                List<Pattern> patList = output.get(numApp);
+    @JsonIgnore
+    public Map<Integer, List<Pattern<E>>> getPatternsByNumOccurrences() {
+        Map<Integer, List<Pattern<E>>> output = new HashMap<>();
+        for (List<Pattern<E>> lengthPat : patterns) {
+            for (Pattern<E> pat : lengthPat) {
+                int numApp = pat.numAppearances();
+                List<Pattern<E>> patList = output.get(numApp);
                 if (patList == null) {
-                    patList = new ArrayList<Pattern>();
+                    patList = new ArrayList<>();
                     output.put(numApp, patList);
                 }
                 patList.add(pat);
@@ -226,11 +197,12 @@ public class PatternTree implements JSONSerializable {
         return output;
     }
 
-    public List<Pattern> getPatternsThatAppearedNTimes(int n) {
-        List<Pattern> output = new ArrayList<Pattern>();
-        for (List<Pattern> lengthPat : patterns) {
-            for (Pattern pat : lengthPat) {
-                if (pat.getNumAppearances() == n) {
+    @JsonIgnore
+    public List<Pattern<E>> getPatternsThatAppearedNTimes(int n) {
+        List<Pattern<E>> output = new ArrayList<>();
+        for (List<Pattern<E>> lengthPat : patterns) {
+            for (Pattern<E> pat : lengthPat) {
+                if (pat.numAppearances() == n) {
                     output.add(pat);
                 }
             }
@@ -241,12 +213,18 @@ public class PatternTree implements JSONSerializable {
 
     //--------------------------------------- GETTERS --------------------------------------------\\
 
+    public Sequence<E> getSequence() {
+        return seq;
+    }
+    
+    @JsonIgnore
     public int getGlobalSequenceLength() {
         return seqLength;
     }
 
+    @JsonIgnore
     public boolean isEmpty() {
-        for (List<Pattern> pat : patterns) {
+        for (List<Pattern<E>> pat : patterns) {
             if (!pat.isEmpty()) {
                 return false;
             }
@@ -257,7 +235,7 @@ public class PatternTree implements JSONSerializable {
 
     //-------------------------------------- CONTAINS --------------------------------------------\\
 
-    public boolean contains(Sequence sequence) {
+    public boolean contains(Sequence<E> sequence) {
         if (sequence.isEmpty() || sequence.size() > seqLength) {
             return false;
         } else {
@@ -266,25 +244,9 @@ public class PatternTree implements JSONSerializable {
     }
 
 
-    //---------------------------------------- JSON ----------------------------------------------\\
-
-    public JSONObject toJSON() {
-        Map<String, Object> content = new HashMap<>();
-        content.put(Pattern.JSON_SEQUENCE_ATTRIBUTE, seq.toJSON());
-        List<JSONObject> pat = new ArrayList<>();
-        for (Pattern pattern : getAllPatterns()) {
-            pat.add(pattern.toJSON());
-        }
-        if (!pat.isEmpty()) {
-            content.put(Pattern.JSON_INNER_SEQUENCES_ATTRIBUTE, pat);
-        }
-        return new JSONObject(content);
-    }
-
-
     //------------------------------------- TO STRING --------------------------------------------\\
 
     public String toString() {
-        return toJSON().toString();
+        return JSONUtils.toRobustJSONString(this);
     }
 }

@@ -43,7 +43,6 @@ public abstract class Module {
     public Module(Level verbose) {
         this.profiler = new Profiler();
         this.verbose  = verbose;
-
         procedure(Default.DEFAULT_PROCEDURE);
     }
 

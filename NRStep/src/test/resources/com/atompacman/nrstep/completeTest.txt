@@ -1,9 +1,0 @@
-a 										= {"SEQ":["a"]}
-ab 										= {"SEQ":["a","b"]}
-aa 										= {"SUB":[{"POS":[0,1],"SEQ":["a"]}],"SEQ":["a","a"]}
-aab										= {"SUB":[{"POS":[0,1],"SEQ":["a"]}],"SEQ":["a","a","b"]}
-aaa										= {"SUB":[{"POS":[0,1,2],"SEQ":["a"]}],"SEQ":["a","a","a"]}
-abab									= {"SUB":[{"POS":[0,2],"SEQ":["a","b"]}],"SEQ":["a","b","a","b"]}
-aabb									= {"SUB":[{"POS":[0,1],"SEQ":["a"]},{"POS":[2,3],"SEQ":["b"]}],"SEQ":["a","a","b","b"]}
-ababa									= {"SUB":[{"POS":[0,2],"SEQ":["a","b"]},{"POS":[1,3],"SEQ":["b","a"]}],"SEQ":["a","b","a","b","a"]}
-abaaba									= {"SUB":[{"SUB":[{"POS":[0,2],"SEQ":["a"]}],"POS":[0,3],"SEQ":["a","b","a"]}],"SEQ":["a","b","a","a","b","a"]}

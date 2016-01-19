@@ -3,6 +3,7 @@ package com.atompacman.toolkat.module;
 import org.apache.logging.log4j.Level;
 
 import com.atompacman.toolkat.misc.StringHelper;
+import com.atompacman.toolkat.module.Report.OutputFormat;
 
 public class LogEntry extends Observation {
 
@@ -16,23 +17,23 @@ public class LogEntry extends Observation {
 
     private final String msg;
     private final Level  verbose;
-    private final int    titleSpacing;
+    private final int    indentationLvl;
 
 
 
     //======================================= METHODS ============================================\\
 
-    //---------------------------------- PACKAGE CONSTRUCTOR -------------------------------------\\
+    //------------------------------------- CONSTRUCTORS -----------------------------------------\\
 
-    public LogEntry(String msg, Level verbose, int stackTrackLvlModifier) {
-        this(msg, verbose, NO_TITLE, stackTrackLvlModifier + 1);
+    public LogEntry(String msg, String moduleID, Level verbose, int stackTraceMod) {
+        this(msg, moduleID, verbose, NO_TITLE, stackTraceMod + 1);
     }
 
-    public LogEntry(String msg, Level verbose, int titleSpacing, int stackTrackLvlModifier) {
-        super(stackTrackLvlModifier + 1);
-        this.msg = msg;
-        this.verbose = verbose;
-        this.titleSpacing = titleSpacing;
+    public LogEntry(String msg, String moduleID, Level verbose, int indentLvl, int stackTraceMod) {
+        super(moduleID, stackTraceMod + 1);
+        this.msg            = msg;
+        this.verbose        = verbose;
+        this.indentationLvl = indentLvl;
     }
 
 
@@ -49,7 +50,24 @@ public class LogEntry extends Observation {
         return verbose;
     }
 
-    public String format() {
-        return titleSpacing == NO_TITLE ? msg : StringHelper.title(msg, titleSpacing);
+    public String format(OutputFormat format) {
+        StringBuilder sb = new StringBuilder();
+        
+        switch (format) {
+        case CONSOLE:
+            sb.append(indentationLvl == NO_TITLE ? msg : StringHelper.title(msg, indentationLvl));
+            break;
+            
+        case FILE:
+            for (int i = 0; i < indentationLvl; ++i) {
+                sb.append('\t');
+            }
+            sb.append(msg);
+            break;
+            
+        default:
+            break;
+        }
+        return sb.toString();
     }
 }

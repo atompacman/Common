@@ -1,50 +1,60 @@
 package com.atompacman.toolkat.module;
 
-import java.util.ArrayList;
+import java.io.PrintStream;
 import java.util.LinkedList;
 import java.util.List;
 
+import com.atompacman.toolkat.module.Report.OutputFormat;
 import com.atompacman.toolkat.time.StopWatch;
 
 public final class Procedure extends StopWatch {
 
     //======================================= FIELDS =============================================\\
 
-    private final ProcedureDescription    desc;
-    private final Class<? extends Module> assocModule;
-    private final List<Observation>       obs;
-
-    private final Procedure               parent;
-    private final LinkedList<Procedure>   children;
+    private final String                name;
+    private final ProcedureDescription  desc;
+    private final String                assocModuleID;
+    private final Procedure             parent;
+    private final List<Observation>     obs;
+    private final LinkedList<Procedure> children;
 
 
 
     //======================================= METHODS ============================================\\
 
-    //---------------------------------- PACKAGE CONSTRUCTOR -------------------------------------\\
+    //------------------------------------- CONSTRUCTORS -----------------------------------------\\
 
-    Procedure(ProcedureDescription cp, Class<? extends Module> assocModule) {
-        this(cp, assocModule, null);
+    Procedure(ProcedureDescription desc, String moduleID, Object... procNameArgs) {
+        this(desc, moduleID, null, procNameArgs);
     }
-    
-    Procedure(ProcedureDescription cp, Class<? extends Module> assocModule, Procedure parent) {
-        this.desc        = cp;
-        this.assocModule = assocModule;
-        this.obs         = new ArrayList<>();
 
-        this.parent      = parent;
-        this.children    = new LinkedList<>();
+    Procedure(ProcedureDescription desc, String moduleID, Procedure parent, Object...procNameArgs) {
+        this.name          = String.format(desc.nameFormat(), procNameArgs);
+        this.desc          = desc;
+        this.assocModuleID = moduleID;
+        this.parent        = parent;
+        this.obs           = new LinkedList<>();
+        this.children      = new LinkedList<>();
+        
+        // Attach current procedure to its parent
+        if (parent != null) {
+            Procedure child = parent.getLastChildProcedure();
+            if (child != null) {
+                child.clickHierarchy();
+            }
+            parent.children.add(this);
+        }
+        
+        // Start current procedure
+        click();
     }
 
 
     //--------------------------------------- SETTERS --------------------------------------------\\
 
-    void addObservation(Observation ob) {
+    void addObservation(Observation ob, int stackTrackLvlModifier) {
         obs.add(ob);
-    }
-
-    void addChild(Procedure procedure) {
-        children.add(procedure);
+        ob.log(stackTrackLvlModifier + 1);
     }
 
     void clickHierarchy() {
@@ -57,20 +67,24 @@ public final class Procedure extends StopWatch {
 
     //--------------------------------------- GETTERS --------------------------------------------\\
 
+    String getName() {
+        return name;
+    }
+
     ProcedureDescription getDescription() {
         return desc;
     }
 
-    Class<? extends Module> getAssociatedModule() {
-        return assocModule;
-    }
-
-    List<Observation> getObservations() {
-        return obs;
+    String getAssociatedModuleID() {
+        return assocModuleID;
     }
 
     Procedure getParentProcedure() {
         return parent;
+    }
+
+    List<Observation> getObservations() {
+        return obs;
     }
 
     List<Procedure> getChildProcedures() {
@@ -80,20 +94,40 @@ public final class Procedure extends StopWatch {
     int getGeneration() {
         return parent == null ? 0 : parent.getGeneration() + 1;
     }
-    
+
     Procedure getLastChildProcedure() {
-        if (children.isEmpty()) {
-            throw new IllegalStateException("Procedure \"" + desc.name()
-                    + "\" does not have a child procedure");
-        }
-        return children.peekLast();
+        return children.isEmpty() ? null : children.peekLast();
     }
 
     Procedure getAncesterProcedure() {
         return parent == null ? this : parent.getAncesterProcedure();
     }
-    
+
     Procedure getYoungestChildProcedure() {
         return children.isEmpty() ? this : children.peekLast().getYoungestChildProcedure();
+    }
+
+
+    //---------------------------------------- PRINT ---------------------------------------------\\
+
+    public void print(PrintStream out) {
+        out.print('[');
+        out.print(assocModuleID);
+        out.print("] ");
+        out.println(name);
+        for (Observation ob : obs) {
+            out.println(ob.format(OutputFormat.FILE));
+        }
+        for (Procedure child : children) {
+            child.print(out);
+            out.println();
+        }
+    }
+    
+    
+    //-------------------------------------- TO STRING -------------------------------------------\\
+
+    public String toString() {
+        return assocModuleID + " : " + name;
     }
 }

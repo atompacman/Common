@@ -1,6 +1,6 @@
 package com.atompacman.toolkat.math;
 
-public class Probability extends Norm implements Comparable<Probability> {
+public class Probability extends UNorm implements Comparable<Probability> {
 
     //====================================== CONSTANTS ===========================================\\
 

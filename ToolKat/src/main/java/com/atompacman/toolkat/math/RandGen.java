@@ -36,4 +36,8 @@ public class RandGen {
     public static int nextInt(int min, int max) {
         return min + randGen.nextInt(max + 1);
     }
+    
+    public static byte nextByte(byte min, byte max) {
+        return (byte) (min + randGen.nextInt(max + 1));
+    }
 }

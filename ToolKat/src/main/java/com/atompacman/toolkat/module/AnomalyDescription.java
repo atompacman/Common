@@ -12,7 +12,7 @@ public @interface AnomalyDescription {
     //===================================== INNER TYPES ==========================================\\
 
     public enum Severity {
-        NONE, MINIMAL, MODERATE, CRITIC, FATAL;
+        UNSPECIFIED, MINIMAL, MODERATE, CRITIC, FATAL;
     }
 
 
@@ -23,5 +23,5 @@ public @interface AnomalyDescription {
     String   detailsFormat()    default "%s";
     String   description()      default "UNSPECIFIED";
     String   consequences()     default "UNSPECIFIED";
-    Severity severity()         default Severity.NONE;
+    Severity severity()         default Severity.UNSPECIFIED;
 }

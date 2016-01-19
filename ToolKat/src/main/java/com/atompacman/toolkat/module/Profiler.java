@@ -1,126 +1,118 @@
 package com.atompacman.toolkat.module;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.apache.logging.log4j.Level;
 
-import com.atompacman.toolkat.exception.Throw;
+final class Profiler {
 
-public final class Profiler {
+    //===================================== INNER TYPES ==========================================\\
+
+    private enum Status { RUNNING, PAUSED, STOPPED };
+
+
 
     //======================================= FIELDS =============================================\\
 
-    // Report
-    private Report report;
-
-    // Temporary
-    private Map<Module, Procedure> currProc;
-    private boolean                paused;
+    private final Report    report;
+    private       Procedure currProc;
+    private       Status    status;
 
 
 
     //======================================= METHODS ============================================\\
 
-    //---------------------------------- PACKAGE CONSTRUCTOR -------------------------------------\\
+    //------------------------------------- CONSTRUCTORS -----------------------------------------\\
 
     Profiler() {
-        // Report
         this.report   = new Report();
-
-        // Temporary
-        this.currProc = new HashMap<>();
-        this.paused   = false;
+        this.currProc = null;
+        this.status   = Status.RUNNING;
     }
 
 
     //-------------------------------------- PROCEDURE -------------------------------------------\\
 
-    <T extends Module> void startProcedure(ProcedureDescription procDesc, 
-                                           T                    callingModule, 
-                                           int                  stackTrackLvlModifier) {
-        // Use root parent procedure
-        startProcedure(procDesc, getParentProcedure(callingModule), 
-                       callingModule, stackTrackLvlModifier + 1);
-    }
+    <T extends BaseModule> void startProcedure(ProcedureDescription procDesc, 
+                                               String               moduleID, 
+                                               int                  stackTrackLvlModifier,
+                                               Object...            procNameArgs) {
 
-    <T extends Module> void startProcedure(ProcedureDescription parentProcDesc,
-                                           ProcedureDescription procDesc, 
-                                           T                    callingModule, 
-                                           int                  stackTrackLvlModifier) {
-
-        // Get specified parent procedure
-        Procedure parent = getParentProcedure(callingModule);
-        while (parent != null && parent.getDescription() != parentProcDesc) {
-            parent = parent.getLastChildProcedure();
-        }
-        startProcedure(procDesc, parent, callingModule, stackTrackLvlModifier + 1);
-    }
-
-    private <T extends Module> void startProcedure(ProcedureDescription newProcDesc,
-                                                   Procedure            parentProc,
-                                                   T                    callingModule,
-                                                   int                  stackTrackLvlModifier) {
-
-        if (paused) {
-            Throw.aRuntime(TimerException.class, "Cannot start procedure: profiler is paused");
+        // Find last procedure started by current module
+        Procedure proc = currProc;
+        while (proc != null && !proc.getAssociatedModuleID().equals(moduleID)) {
+            proc = proc.getParentProcedure();
         }
 
-        // Stop previous procedure if its not already paused
-        Procedure prevProc = currProc.get(callingModule);
-        if (prevProc != null) {
-            if (!paused) {
-                prevProc.clickHierarchy();
-            }
-
-            // Add previous procedure to report
-            report.addCompletedProcedure(prevProc);
+        // First parent of first procedure started by current module
+        while (proc != null && proc.getAssociatedModuleID().equals(moduleID)) {
+            proc = proc.getParentProcedure();
         }
-
-        // Create new procedure and assign it to his parent
-        Procedure newProc = new Procedure(newProcDesc, callingModule.getClass(), parentProc);
-        currProc.put(callingModule, newProc);
-        if (parentProc != null) {
-            parentProc.addChild(newProc);
-        }
-
-        // Start new procedure
-        newProc.click();
-
-        // Log new procedure start
-        if (!newProcDesc.name().equals(Module.DEFAULT_PROC_NAME)) {
-            LogEntry entry = new LogEntry(newProcDesc.name(), Level.INFO, 
-                    newProc.getGeneration(), stackTrackLvlModifier + 1);
-            recordObservation(entry, stackTrackLvlModifier + 1);
-        }
-    }
-
-    private <T extends Module> Procedure getParentProcedure(T callingModule) {
-        // Check if a procedure is already running for this module
-        Procedure proc = currProc.get(callingModule);
 
         if (proc == null) {
-            // Parent procedure is the youngest procedure
-            return getCurrentProcedure();
-        } else {
-            // Parent procedure is simply the parent of current procedure
-            return proc.getParentProcedure();
+            if (currProc != null) { 
+                Procedure ancester = currProc.getAncesterProcedure();
+                if (ancester.getAssociatedModuleID().equals(moduleID)) {
+                    report.addCompletedProcedure(ancester);
+                } else {
+                    proc = currProc;
+                }
+            } else {
+                proc = currProc;
+            }
         }
+ 
+        startProcedureImpl(stackTrackLvlModifier + 1, procDesc, proc, moduleID, procNameArgs);
     }
 
-    private Procedure getCurrentProcedure() {
-        if (currProc.isEmpty()) {
-            return null;
-        } else {
-            return currProc.values().iterator().next().getYoungestChildProcedure();
+    <T extends BaseModule> void startSubProcedure(ProcedureDescription procDesc, 
+                                                  String               moduleID, 
+                                                  int                  stackTrackLvlModifier,
+                                                  Object...            procNameArgs) {
+
+        if (currProc == null) {
+            throw new IllegalStateException("Cannot start a sub-procedure "
+                    + "when no procedure at all was started");
         }
+        startProcedureImpl(stackTrackLvlModifier + 1, procDesc, currProc, moduleID, procNameArgs);
     }
 
-    private Procedure getRootProcedure() {
-        if (currProc.isEmpty()) {
-            return null;
-        } else {
-            return currProc.values().iterator().next().getAncesterProcedure();
+    <T extends BaseModule> void startSubProcedure(ProcedureDescription parentProcDesc,
+                                                  ProcedureDescription procDesc, 
+                                                  String               moduleID, 
+                                                  int                  stackTrackLvlModifier,
+                                                  Object...            procNameArgs) {
+
+        if (currProc == null) {
+            throw new IllegalStateException("Cannot start a sub-procedure "
+                    + "when no procedure at all was started");
+        }
+        Procedure parent = currProc.getParentProcedure();
+        while (parent.getDescription() != parentProcDesc) {
+            parent = parent.getParentProcedure();
+            if (parent == null) {
+                throw new IllegalArgumentException("Procedure \"" + currProc + "\" has "
+                        + "no parent procedure \"" + parentProcDesc.nameFormat() + "\"");
+            }
+        }
+        startProcedureImpl(stackTrackLvlModifier + 1, procDesc, parent, moduleID, procNameArgs);
+    }
+
+    private <T extends BaseModule> void startProcedureImpl(int                  stackTraceLvlMod,
+                                                           ProcedureDescription procDesc,
+                                                           Procedure            parentProc, 
+                                                           String               moduleID, 
+                                                           Object...            procNameArgs) {
+
+        if (status != Status.RUNNING) {
+            throw new IllegalStateException("Cannot start procedures "
+                    + "when profiler is paused or stopped");
+        }
+
+        currProc = new Procedure(procDesc, moduleID, parentProc, procNameArgs);
+
+        if (!procDesc.nameFormat().equals(BaseModule.DEFAULT_PROC_NAME)) {
+            LogEntry entry = new LogEntry(currProc.getName(), moduleID, Level.INFO,
+                    currProc.getGeneration() + 1, stackTraceLvlMod + 1);
+            currProc.addObservation(entry, stackTraceLvlMod + 1);
         }
     }
 
@@ -128,46 +120,47 @@ public final class Profiler {
     //------------------------------------- PAUSE/RESUME -----------------------------------------\\
 
     void pause() {
-        if (paused) {
-            Throw.aRuntime(TimerException.class, "Procedures are already paused");
+        if (status != Status.RUNNING) {
+            throw new IllegalStateException("Procedure must be running to be paused");
         }
-        Procedure rootProc = getRootProcedure();
-        if (rootProc == null) {
-            Throw.aRuntime(TimerException.class, "A procedure must be running before pausing");
-        }
-        paused = true;
-        rootProc.clickHierarchy();
+        status = Status.PAUSED;
+        currProc.getAncesterProcedure().clickHierarchy();
     }
 
     void resume() {
-        if (!paused) {
-            Throw.aRuntime(TimerException.class, "Procedures must be paused before resuming");
+        if (status != Status.PAUSED) {
+            throw new IllegalStateException("Procedures must be paused to resume");
         }
-        paused = false;
-        getRootProcedure().clickHierarchy();
-    }    
+        status = Status.RUNNING;
+        currProc.getAncesterProcedure().clickHierarchy();
+    }
 
 
     //---------------------------------- RECORD OBSERVATION --------------------------------------\\
 
-    void recordObservation(Observation obs, int stackTrackLvlModifier) {
-        Procedure currProc = getCurrentProcedure();
+    <T extends BaseModule> void recordObservation(Observation obs, String moduleID, int stackTLMod){
+        if (status != Status.RUNNING) {
+            throw new IllegalStateException("Procedures must be running to record observations");
+        }
         if (currProc == null) {
             throw new IllegalStateException("A procedure must be "
                     + "started before recording observations");
         }
-        currProc.addObservation(obs);
-        obs.log(stackTrackLvlModifier + 1);
+        currProc.addObservation(obs, stackTLMod + 1);
     }
 
 
     //-------------------------------------- GET REPORT ------------------------------------------\\
 
     Report getReport() {
-        Procedure root = getRootProcedure();
-        if (root != null) {
-            report.addCompletedProcedure(root);
+        if (currProc != null) {
+            Procedure proc = currProc.getAncesterProcedure();
+            if (status == Status.RUNNING) {
+                proc.clickHierarchy();
+            }
+            report.addCompletedProcedure(proc);
         }
+        status = Status.STOPPED;
         return report;
     }
 }

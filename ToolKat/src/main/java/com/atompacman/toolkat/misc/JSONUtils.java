@@ -62,7 +62,7 @@ public class JSONUtils {
     
     public static String toRobustJSONString(Object pojo) {
         try {
-            return MAPPER.writerFor(pojo.getClass()).writeValueAsString(pojo);
+            return toJSONString(pojo);
         } catch (IOException e) {
             return e.getMessage();
         }

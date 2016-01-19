@@ -95,7 +95,9 @@ public class PatternTree<E> {
     private final int                seqLength;
     private final Node<E>            root;
     private final List<Pattern<E>>[] patterns;
-
+    
+    private int numPatterns;
+    
 
 
     //======================================= METHODS ============================================\\
@@ -112,6 +114,8 @@ public class PatternTree<E> {
         for (int i = 0; i < seqLength / 2; ++i) {
             patterns[i] = new ArrayList<>();
         }
+        
+        this.numPatterns = 0;
     }
     
 
@@ -150,14 +154,14 @@ public class PatternTree<E> {
     }
 
     private void addPattern(Pattern<E> pattern) {
-        int seqLength = pattern.getSequence().size();
-        patterns[seqLength - 1].add(pattern);
+        ++numPatterns;
+        patterns[pattern.getSequence().size() - 1].add(pattern);
     }
 
 
     //----------------------------------- GET PATTERNS -------------------------------------------\\
 
-    @JsonGetter("patterns")
+    @JsonIgnore
     public List<Pattern<E>> getAllPatterns() {
         List<Pattern<E>> output = new ArrayList<>();
         for (List<Pattern<E>> lengthPat : patterns) {
@@ -197,24 +201,17 @@ public class PatternTree<E> {
         return output;
     }
 
-    @JsonIgnore
-    public List<Pattern<E>> getPatternsThatAppearedNTimes(int n) {
-        List<Pattern<E>> output = new ArrayList<>();
-        for (List<Pattern<E>> lengthPat : patterns) {
-            for (Pattern<E> pat : lengthPat) {
-                if (pat.numAppearances() == n) {
-                    output.add(pat);
-                }
-            }
-        }
-        return output;
-    }
-
 
     //--------------------------------------- GETTERS --------------------------------------------\\
 
+    @JsonIgnore
     public Sequence<E> getSequence() {
         return seq;
+    }
+    
+    @JsonIgnore
+    public int getNumPatterns() {
+        return numPatterns;
     }
     
     @JsonIgnore
@@ -232,7 +229,21 @@ public class PatternTree<E> {
         return true;
     }
 
+    /**
+     * Creates a Pattern wrapper around this PatternTree in order to have a correct JSON 
+     * serialization.
+     * 
+     * @return A pojo for the JSON serializer
+     */
+    @JsonGetter("pattern_tree")
+    private Pattern<E> getJSONPojo() {
+        Pattern<E> pojo = new Pattern<>(seq);
+        pojo.addOccurrences(Arrays.asList(0));
+        pojo.setSubPatterns(this);
+        return pojo;
+    }
 
+    
     //-------------------------------------- CONTAINS --------------------------------------------\\
 
     public boolean contains(Sequence<E> sequence) {

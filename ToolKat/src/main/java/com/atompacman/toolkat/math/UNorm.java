@@ -1,6 +1,6 @@
 package com.atompacman.toolkat.math;
 
-public class Norm {
+public class UNorm {
 
     //======================================= FIELDS =============================================\\
 
@@ -12,7 +12,7 @@ public class Norm {
 
     //---------------------------------- PUBLIC CONSTRUCTOR --------------------------------------\\
 
-    public Norm(double value) {
+    public UNorm(double value) {
         if (value < 0) {
             throw new IllegalArgumentException("Norm cannot be negative.");
         }
@@ -48,7 +48,7 @@ public class Norm {
             return false;
         if (getClass() != obj.getClass())
             return false;
-        Norm other = (Norm) obj;
+        UNorm other = (UNorm) obj;
         if (Double.doubleToLongBits(value) != Double
                 .doubleToLongBits(other.value))
             return false;

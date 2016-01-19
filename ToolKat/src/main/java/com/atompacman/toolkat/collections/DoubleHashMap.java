@@ -1,7 +1,11 @@
 package com.atompacman.toolkat.collections;
 
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 public class DoubleHashMap<A,B,C> implements DoubleMap<A,B,C> {
 
@@ -39,5 +43,20 @@ public class DoubleHashMap<A,B,C> implements DoubleMap<A,B,C> {
 
     public Map<B,C> getSubMap(A a) {
         return map.get(a);
+    }
+
+    public List<Map<B, C>> getSubMaps() {
+        return new LinkedList<>(map.values());
+    }
+
+    public Set<Entry<A, Map<B, C>>> entrySet() {
+        return map.entrySet();
+    }
+
+    
+    //---------------------------------------- CLEAR ---------------------------------------------\\
+
+    public void clear() {
+        map.clear();
     }
 }

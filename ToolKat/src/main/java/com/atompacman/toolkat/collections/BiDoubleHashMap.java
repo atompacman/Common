@@ -30,4 +30,11 @@ public class BiDoubleHashMap<A,B,C> extends DoubleHashMap<A,B,C> implements BiDo
     public Map<A, C> getAlternativeSubMap(B b) {
         return altMap.getSubMap(b);
     }
+
+
+    //---------------------------------------- CLEAR ---------------------------------------------\\
+
+    public void clear() {
+        altMap.clear();
+    }
 }

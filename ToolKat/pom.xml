@@ -46,6 +46,16 @@
             <artifactId>commons-math3</artifactId>
             <version>3.5</version>
         </dependency>
+        <dependency>
+            <groupId>org.grame</groupId>
+            <artifactId>guido</artifactId>
+            <version>1.23</version>
+        </dependency>
+        <dependency>
+            <groupId>org.codehaus.plexus</groupId>
+            <artifactId>plexus-utils</artifactId>
+            <version>3.0.22</version>
+        </dependency>
     </dependencies>
 
     <build>

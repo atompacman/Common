@@ -9,7 +9,5 @@ import java.lang.annotation.Target;
 @Target(ElementType.FIELD)
 public @interface ProcedureDescription {
 
-    //======================================= FIELDS =============================================\\
-
-    String name();
+    String nameFormat();
 }

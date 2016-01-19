@@ -50,14 +50,26 @@ public final class Log {
         log(Level.ERROR, 1, msg, params);
     }
 
+    public static void trace(Object msg) {
+        log(Level.TRACE, 1, msg.toString());
+    }
+
+    public static void trace(String msg, Object...params) {
+        log(Level.TRACE, 1, msg, params);
+    }
+
     public static void title(Level lvl, String msg, Object...params) {
-        log(lvl, 1, StringHelper.title(String.format(msg, params)));
+        title(lvl, 1, 0, msg, params);
     }
 
     public static void title(Level lvl, int spaces, String msg, Object...params) {
-        log(lvl, 1, StringHelper.title(String.format(msg, params), spaces));
+        title(lvl, 1, spaces, msg, params);
     }
 
+    public static void title(Level lvl, int stackDepthMod, int spaces, String msg, Object...params){
+        log(lvl, stackDepthMod + 1, StringHelper.title(String.format(msg, params), spaces));
+    }
+    
     public static void log(Level lvl, int stackDepthModifier, String msg, Object...params) {
         StringBuilder sb = new StringBuilder();
 

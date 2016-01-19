@@ -7,17 +7,12 @@ import java.util.Set;
 import com.atompacman.toolkat.exception.Throw;
 import com.atompacman.toolkat.misc.JSONUtils;
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonGetter;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonSetter;
 
 public class Pattern<T> {
-
-    //====================================== CONSTANTS ===========================================\\
-
-    static final String JSON_SEQUENCE_ATTRIBUTE         = "SEQ";
-    static final String JSON_START_POSITIONS_ATTRIBUTE 	= "POS";
-    static final String JSON_INNER_SEQUENCES_ATTRIBUTE 	= "SUB";
-
-
 
     //======================================= FIELDS =============================================\\
 
@@ -57,25 +52,35 @@ public class Pattern<T> {
 
     //--------------------------------- SET SUB OCCURRENCES --------------------------------------\\
 
-    public void setSubPatterns(PatternTree<T> subPat) {
+    @JsonSetter
+    void setSubPatterns(PatternTree<T> subPat) {
         this.subPat = subPat;
     }
 
 
     //--------------------------------------- GETTERS --------------------------------------------\\
 
+    @JsonGetter("sequence")
     public Sequence<T> getSequence() {
         return seq;
     }
 
+    @JsonGetter("positions")
     public Set<Integer> getStartingPositions() {
         return startPos;
     }
 
+    @JsonIgnore
     public PatternTree<T> getSubPatterns() {
         return subPat;
     }
 
+    @JsonGetter("sub_patterns")
+    private List<Pattern<T>> getSubPatternsJSON() {
+        // Directly return the sub patterns list
+        return subPat.getAllPatterns();
+    }
+    
     
     //---------------------------------------- STATE ---------------------------------------------\\
 

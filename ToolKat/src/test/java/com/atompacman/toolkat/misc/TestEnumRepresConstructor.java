@@ -4,7 +4,7 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
-import com.atompacman.toolkat.misc.EnumRepresConstruc;
+import com.atompacman.toolkat.misc.EnumCompositeObjectConstructor;
 import com.atompacman.toolkat.test.AbstractTest;
 
 public class TestEnumRepresConstructor extends AbstractTest {
@@ -27,8 +27,8 @@ public class TestEnumRepresConstructor extends AbstractTest {
         public NoteLetter letter;
         public Octave octave;
 
-        private static EnumRepresConstruc<DummyToneA> a = 
-                new EnumRepresConstruc<DummyToneA>(DummyToneA.class);
+        private static EnumCompositeObjectConstructor<DummyToneA> a = 
+                new EnumCompositeObjectConstructor<DummyToneA>(DummyToneA.class);
 
         private DummyToneA(NoteLetter letter, Octave octave) {
             this.letter = letter;
@@ -70,8 +70,8 @@ public class TestEnumRepresConstructor extends AbstractTest {
     public static class DummyToneC {
         public String letter;
 
-        private static EnumRepresConstruc<DummyToneC> a = 
-                new EnumRepresConstruc<DummyToneC>(DummyToneC.class);
+        private static EnumCompositeObjectConstructor<DummyToneC> a = 
+                new EnumCompositeObjectConstructor<DummyToneC>(DummyToneC.class);
 
 
         private DummyToneC(String t) {
@@ -107,8 +107,8 @@ public class TestEnumRepresConstructor extends AbstractTest {
 
     @Test
     public void testExternalERC() {
-        EnumRepresConstruc<DummyToneB> constructor = 
-                new EnumRepresConstruc<DummyToneB>(DummyToneB.class);
+        EnumCompositeObjectConstructor<DummyToneB> constructor = 
+                new EnumCompositeObjectConstructor<DummyToneB>(DummyToneB.class);
         DummyToneB a = constructor.newInstance("A5");
         DummyToneB b = new DummyToneB(NoteLetter.A, Octave.FIVE);
         assertEquals(a, b);

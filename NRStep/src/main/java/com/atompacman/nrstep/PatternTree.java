@@ -1,253 +1,193 @@
 package com.atompacman.nrstep;
 
+import static com.google.common.base.Preconditions.*;
+
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
+import java.util.Optional;
 
-import com.atompacman.toolkat.exception.Throw;
 import com.atompacman.toolkat.misc.JSONUtils;
-import com.fasterxml.jackson.annotation.JsonGetter;
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableListMultimap;
+import com.google.common.collect.ListMultimap;
 
-public class PatternTree<E> {
+public final class PatternTree<E> {
 
-    //===================================== INNER TYPES ==========================================\\
+    //
+    //  ~  NESTED TYPES  ~  //
+    //
 
-    private class Node<T> {
+    private final class Node<T> {
+        
+        //
+        //  ~  FIELDS  ~  //
+        //
 
-        //===================================== FIELDS ===========================================\\
+        private final T             elem;
+        private final List<Node<T>> children;
+        private       boolean       hasPattern;
+        
 
-        private T             elem;
-        private List<Node<T>> children;
-        private Pattern<T>    pat;
-
-
-
-        //===================================== METHODS ==========================================\\
-
-        //-------------------------------- PUBLIC CONSTRUCTOR ------------------------------------\\
-
-        public Node(Sequence<T> sequence) {
-            this.children = new ArrayList<>();
-            if (!sequence.isEmpty()) {
-                this.elem = sequence.get(sequence.size() - 1);
-                this.pat = new Pattern<>(sequence);
-            }
+        //
+        //  ~  INIT  ~  //
+        //
+        
+        public Node(T elem) {
+            this.children   = new ArrayList<>();
+            this.elem       = elem;
+            this.hasPattern = false;
         }
 
 
-        //--------------------------------- ADD OCCURRENCE ---------------------------------------\\
+        //
+        //  ~  ADD PATTERN  ~  //
+        //
 
-        @SuppressWarnings("unchecked")
-        public void addOccurrences(Sequence<T> sequence, List<Integer> startPos, 
-                                   PatternTree<T> subPat, int depth) {
+        public void addPattern(Pattern<T> pattern, int depth) {
+            T elem = pattern.getSequence().get(depth);
 
-            if (depth == sequence.size()) {
-                if (pat.numAppearances() == 0) {
-                    PatternTree.this.addPattern((Pattern<E>) pat);
-                }
-                pat.addOccurrences(startPos);
-                pat.setSubPatterns(subPat);
+            Optional<Node<T>> opChild = children.stream().filter(
+                    node -> node.elem.equals(elem)).findFirst();
+            
+            Node<T> child;
+            
+            if (opChild.isPresent()) {
+                child = opChild.get();
             } else {
-                T elem = sequence.get(depth);
-                Node<T> next = null;
-
-                for (Node<T> child : children) {
-                    if (child.elem.equals(elem)) {
-                        next = child;
-                        break;
-                    }
-                }
-                if (next == null) {
-                    next = new Node<>(sequence.subSequence(0, depth + 1));
-                    children.add(next);
-                }
-                next.addOccurrences(sequence, startPos, subPat, depth + 1);
+                child = new Node<>(elem);
+                children.add(child);
+            }
+            
+            if (depth == pattern.getSequence().size() - 1) {
+                checkState(!child.hasPattern, "Pattern %s was already added to the tree", pattern);
+                child.hasPattern = true;
+            } else {
+                child.addPattern(pattern, depth + 1);
             }
         }
 
 
-        //------------------------------------ CONTAINS ------------------------------------------\\
-
-        public boolean contains(Sequence<T> sequence, int depth) {
-            T elem = sequence.get(depth);
-
-            for (Node<T> child : children) {
-                if (child.elem.equals(elem)) {
-                    if (depth == sequence.size() - 1) {
-                        return child.pat.numAppearances() != 0;
-                    } else {
-                        return child.contains(sequence, depth + 1);
-                    }
-                }
-            }
-            return false;
-        }
-    }
-
-
-
-    //======================================= FIELDS =============================================\\
-
-    private final Sequence<E>        seq;
-    private final int                seqLength;
-    private final Node<E>            root;
-    private final List<Pattern<E>>[] patterns;
-    
-    private int numPatterns;
-    
-
-
-    //======================================= METHODS ============================================\\
-
-    //---------------------------------- PACKAGE CONSTRUCTOR -------------------------------------\\
-
-    @SuppressWarnings("unchecked")
-    PatternTree(Sequence<E> seq) {
-        this.seq       = seq;
-        this.seqLength = seq.size();
-        this.root      = new Node<>(new Sequence<E>());
-        this.patterns  = new List[seqLength / 2];
+        //
+        //  ~  CONTAINS  ~  //
+        //
         
-        for (int i = 0; i < seqLength / 2; ++i) {
-            patterns[i] = new ArrayList<>();
-        }
-        
-        this.numPatterns = 0;
-    }
-    
-
-    //----------------------------------- ADD OCCURRENCE -----------------------------------------\\
-
-    public void addOccurrence(Sequence<E> sequence, int startPos) {
-        addOccurrences(sequence, Arrays.asList(startPos), null);
-    }
-
-    public void addOccurrences(Sequence<E> sequence, List<Integer> startPos) {
-        addOccurrences(sequence, startPos, null);
-    }
-
-    public void addOccurrences(Sequence<E> sequence, List<Integer> startPos, 
-                               PatternTree<E> subPatterns) {
-
-        try {
-            if (sequence.isEmpty()) {
-                Throw.aRuntime(NRStepException.class, "Cannot add an empty sequence");
-            }
-            for (int start : startPos) {
-                if (start < 0) {
-                    Throw.aRuntime(NRStepException.class, "Starting positions must be positive");
+        public boolean contains(ImmutableList<T> sequence, int depth) {
+            Optional<Node<T>> opChild = children.stream().filter(node 
+                    -> node.elem.equals(sequence.get(depth))).findFirst();
+            
+            if (opChild.isPresent()) {
+                if (depth == sequence.size() - 1) {
+                    return opChild.get().hasPattern;
+                } else {
+                    return opChild.get().contains(sequence, depth + 1);
                 }
-                if (start > seqLength - sequence.size() + 1) {
-                    Throw.aRuntime(NRStepException.class, "The end of a sequence "
-                            + "exceeds end of the global sequence");
-                }
-            }
-        } catch (NRStepException e) {
-            Throw.aRuntime(NRStepException.class, "Could not add occurrences \"" + 
-                    sequence.toString()	+ "\" (pos: " + startPos + ") to pattern tree", e);
-        }
-
-        root.addOccurrences(sequence, startPos, subPatterns, 0);
-    }
-
-    private void addPattern(Pattern<E> pattern) {
-        ++numPatterns;
-        patterns[pattern.getSequence().size() - 1].add(pattern);
-    }
-
-
-    //----------------------------------- GET PATTERNS -------------------------------------------\\
-
-    @JsonIgnore
-    public List<Pattern<E>> getAllPatterns() {
-        List<Pattern<E>> output = new ArrayList<>();
-        for (List<Pattern<E>> lengthPat : patterns) {
-            output.addAll(lengthPat);
-        }
-        return output;
-    }
-
-    @JsonIgnore
-    public List<List<Pattern<E>>> getPatternsByLength() {
-        return Arrays.asList(patterns);
-    }
-
-    @JsonIgnore
-    public List<Pattern<E>> getPatternOfLength(int length) {
-        if (length > patterns.length + 1 || length <= 0) {
-            return new ArrayList<Pattern<E>>();
-        } else {
-            return patterns[length - 1];
-        }
-    }
-
-    @JsonIgnore
-    public Map<Integer, List<Pattern<E>>> getPatternsByNumOccurrences() {
-        Map<Integer, List<Pattern<E>>> output = new HashMap<>();
-        for (List<Pattern<E>> lengthPat : patterns) {
-            for (Pattern<E> pat : lengthPat) {
-                int numApp = pat.numAppearances();
-                List<Pattern<E>> patList = output.get(numApp);
-                if (patList == null) {
-                    patList = new ArrayList<>();
-                    output.put(numApp, patList);
-                }
-                patList.add(pat);
-            }
-        }
-        return output;
-    }
-
-
-    //--------------------------------------- GETTERS --------------------------------------------\\
-
-    @JsonIgnore
-    public Sequence<E> getSequence() {
-        return seq;
-    }
-    
-    @JsonIgnore
-    public int getNumPatterns() {
-        return numPatterns;
-    }
-    
-    @JsonIgnore
-    public int getGlobalSequenceLength() {
-        return seqLength;
-    }
-
-    @JsonIgnore
-    public boolean isEmpty() {
-        for (List<Pattern<E>> pat : patterns) {
-            if (!pat.isEmpty()) {
+            } else {
                 return false;
             }
         }
-        return true;
     }
 
-    /**
-     * Creates a Pattern wrapper around this PatternTree in order to have a correct JSON 
-     * serialization.
-     * 
-     * @return A pojo for the JSON serializer
-     */
-    @JsonGetter("pattern_tree")
-    private Pattern<E> getJSONPojo() {
-        Pattern<E> pojo = new Pattern<>(seq);
-        pojo.addOccurrences(Arrays.asList(0));
-        pojo.setSubPatterns(this);
-        return pojo;
+
+    //
+    //  ~  FIELDS  ~  //
+    //
+
+    private final ImmutableList<E>       seq;
+    private final Node<E>                root;
+    private final List<List<Pattern<E>>> patternsBySize;
+
+
+    //
+    //  ~  INIT  ~  //
+    //
+
+    PatternTree(ImmutableList<E> sequence) {
+        checkArgument(!checkNotNull(sequence).isEmpty(), "Sequence must not be empty");
+
+        this.seq            = sequence;
+        this.root           = new Node<>(seq.get(0));
+        this.patternsBySize = new ArrayList<>();
+        
+        for (int i = 0; i < seq.size() / 2; ++i) {
+            patternsBySize.add(new LinkedList<>());
+        }
+    }
+    
+
+    //
+    //  ~  ADD PATTERN  ~  //
+    //
+
+    void addPattern(Pattern<E> pattern) {
+        root.addPattern(pattern, 0);
+        patternsBySize.get(pattern.getSequence().size() - 1).add(pattern);
+    }
+
+
+    //
+    //  ~  GETTERS  ~  //
+    //
+
+    public ImmutableList<E> getSequence() {
+        return seq;
+    }
+    
+    public ImmutableList<Pattern<E>> getAllPatterns() {
+        List<Pattern<E>> output = new ArrayList<>();
+        for (List<Pattern<E>> lengthPat : patternsBySize) {
+            output.addAll(lengthPat);
+        }
+        return ImmutableList.copyOf(output);
+    }
+
+    public ImmutableList<ImmutableList<Pattern<E>>> getPatternsByLength() {
+        List<ImmutableList<Pattern<E>>> output = new ArrayList<>();
+        for (List<Pattern<E>> lengthPat : patternsBySize) {
+            output.add(ImmutableList.copyOf(lengthPat));
+        }
+        return ImmutableList.copyOf(output);
+    }
+
+    public ImmutableList<Pattern<E>> getPatternOfLength(int length) {
+        if (length > patternsBySize.size() || length <= 0) {
+            return ImmutableList.of();
+        } else {
+            return ImmutableList.copyOf(patternsBySize.get(length - 1));
+        }
+    }
+
+    public ImmutableListMultimap<Integer, Pattern<E>> getPatternsByNumOccurrences() {
+        ListMultimap<Integer, Pattern<E>> output = ArrayListMultimap.create();
+        for (List<Pattern<E>> lengthPat : patternsBySize) {
+            for (Pattern<E> pat : lengthPat) {
+                output.put(pat.numAppearances(), pat);
+            }
+        }
+        return ImmutableListMultimap.copyOf(output);
     }
 
     
-    //-------------------------------------- CONTAINS --------------------------------------------\\
+    //
+    //  ~  STATE  ~  //
+    //
 
-    public boolean contains(Sequence<E> sequence) {
-        if (sequence.isEmpty() || sequence.size() > seqLength) {
+    public int getNumPatterns() {
+        int num = 0;
+        for (List<Pattern<E>> lengthPat : patternsBySize) {
+            num += lengthPat.size();
+        }
+        return num;
+    }
+
+    public boolean isEmpty() {
+        return getNumPatterns() == 0;
+    }
+
+    public boolean contains(ImmutableList<E> sequence) {
+        if (sequence.isEmpty() || sequence.size() > seq.size() / 2) {
             return false;
         } else {
             return root.contains(sequence, 0);
@@ -255,9 +195,11 @@ public class PatternTree<E> {
     }
 
 
-    //------------------------------------- TO STRING --------------------------------------------\\
-
+    //
+    //  ~  TO STRING  ~  //
+    //
+    
     public String toString() {
-        return JSONUtils.toRobustJSONString(this);
+        return JSONUtils.toRobustPrettyJSONString(Pattern.of(seq, new HashSet<>(), this));
     }
 }

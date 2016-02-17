@@ -1,9 +1,9 @@
 package com.atompacman.toolkat.module;
 
+import java.lang.reflect.InvocationTargetException;
+
 import org.apache.logging.log4j.Level;
 
-import com.atompacman.toolkat.exception.AbstractException;
-import com.atompacman.toolkat.exception.Throw;
 import com.atompacman.toolkat.misc.EnumUtils;
 import com.atompacman.toolkat.misc.StringHelper;
 
@@ -98,23 +98,34 @@ public abstract class BaseModule {
         profiler.recordObservation(ano, moduleID, 1);
     }
 
-    protected <T extends AbstractException> void signalException(Enum<?>   anomaly, 
-                                                                 Class<T>  exceptionClass, 
-                                                                 Object... args) throws T {
+    protected <T extends Exception> void signalException(Enum<?>   anomaly, 
+                                                         Class<T>  exceptionClass, 
+                                                         Object... args) throws T {
 
         Anomaly ano = new Anomaly(extractAnomalyDesc(anomaly),moduleID, 1, args);
         profiler.recordObservation(ano, moduleID, 1);
-        Throw.a(exceptionClass, ano.getDetails());
+        try {
+            throw exceptionClass.getConstructor(String.class).newInstance(ano.getDetails());
+        } catch (InstantiationException | IllegalAccessException | IllegalArgumentException
+                | InvocationTargetException | NoSuchMethodException | SecurityException e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    protected <T extends AbstractException> void signalException(Enum<?>   anomaly, 
-                                                                 Class<T>  exceptionClass, 
-                                                                 Throwable cause, 
-                                                                 Object... args) throws T {
+    protected <T extends Exception> void signalException(Enum<?>   anomaly, 
+                                                         Class<T>  exceptionClass, 
+                                                         Throwable cause, 
+                                                         Object... args) throws T {
 
         Anomaly ano = new Anomaly(extractAnomalyDesc(anomaly), moduleID, 1, args);
         profiler.recordObservation(ano, moduleID, 1);
-        Throw.a(exceptionClass, ano.getDetails(), cause);
+        try {
+            throw exceptionClass.getConstructor(String.class, Throwable.class)
+                .newInstance(ano.getDetails(), cause);
+        } catch (InstantiationException | IllegalAccessException | IllegalArgumentException
+                | InvocationTargetException | NoSuchMethodException | SecurityException e) {
+            throw new RuntimeException(e);
+        }
     }
 
 

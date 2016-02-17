@@ -1,26 +1,23 @@
 package com.atompacman.nrstep;
 
-import static org.junit.Assert.assertEquals;
-
-import java.io.IOException;
-import java.util.Arrays;
-
 import org.junit.Test;
 
-import com.atompacman.toolkat.misc.JSONUtils;
+import com.atompacman.toolkat.misc.Log;
 
-public class TestPattern {
+public final class TestPattern {
 
-    //================================== FUNCTIONNAL TESTS =======================================\\
+    //
+    //  ~  TO STRING  ~  //
+    //
 
     @Test
-    public void assertCorrectJSONSerialization() throws IOException {
-        final String testJSON =
-                "{\"sequence\":[\"y\",\"o\"],\"subPatterns\":null,\"startingPositions\":[1,3]}";
-        final Pattern<String> testPat = new Pattern<String>(
-                new Sequence<String>(Arrays.asList("y","o")));
-        testPat.addOccurrences(Arrays.asList(1,3));
-                
-        assertEquals(testPat, JSONUtils.parse(testJSON, Pattern.class));
+    public void toString_NormalState_NoThrow() {
+        PatternTree<Character> tree = TestHelper.createPatternTreeFor("ayoyoyo");
+        {
+            tree.addPattern(TestHelper.createPatternTreeLeafFrom("yo", 1, 3, 5));
+        }
+        Pattern<Character> pattern = TestHelper.createPatternFrom(tree);
+
+        Log.debug("\n" + pattern.toString());
     }
 }

@@ -1,20 +1,22 @@
 package com.atompacman.nrstep;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
-import com.atompacman.toolkat.exception.Throw;
 import com.atompacman.toolkat.misc.Log;
+import com.google.common.collect.ImmutableList;
 
-public class PatternDetector<T> {
+public final class PatternDetector<T> {
 
-    //======================================= FIELDS =============================================\\
-
+    //
+    //  ~  FIELDS  ~  //
+    //
+    
     /** Processed sequence */
-    private Sequence<T> seq;
-
-    /** Processed sequence length */
-    private int seqLen;
+    private ImmutableList<T> seq;
 
     /** Accepted patterns tree */
     private PatternTree<T> acceptedPatTree;
@@ -29,40 +31,33 @@ public class PatternDetector<T> {
     private int minPatLen;
 
 
+    //
+    //  ~  DETECT  ~  //
+    //
 
-    //======================================= METHODS ============================================\\
-
-    //--------------------------------------- DETECT ---------------------------------------------\\
-
-    public PatternTree<T> detect(Sequence<T> sequence) {
+    public PatternTree<T> detect(ImmutableList<T> sequence) {
         return detect(sequence, 1);
     }
 
-    public PatternTree<T> detect(Sequence<T> sequence, int minPatternLength) {
+    public PatternTree<T> detect(ImmutableList<T> sequence, int minPatternLength) {
+        checkArgument(minPatternLength > 0, "Minimum pattern length must be positive");
+        checkArgument(sequence.size() == 1 || minPatLen <= sequence.size() / 2, "Minimum "
+                + "pattern length must not be longer than the half of the sequence");
+        
         Log.info("Detecting patterns in sequence \"%s\".", sequence);
 
         seq                 = sequence;
-        seqLen              = sequence.size();
         acceptedPatTree     = new PatternTree<>(seq);
         coveredPatTree      = new PatternTree<>(seq);
-        acceptedPatCoverage = new boolean[seqLen];
+        acceptedPatCoverage = new boolean[seq.size()];
         minPatLen           = minPatternLength;
 
-        // Check that minimum pattern length is valid
-        if (minPatLen < 1) {
-            Throw.aRuntime(NRStepException.class, "Minimum pattern length must be positive");
-        }
-        if (minPatLen > seqLen / 2 && seqLen > 1) {
-            Throw.aRuntime(NRStepException.class, "Minimum pattern length "
-                    + "must not be longer than the half of the sequence");
-        }
-
         // For every possible subsequence length in decreasing order
-        for (int subSeqLen = seqLen / 2; subSeqLen >= minPatLen; --subSeqLen) {
+        for (int subSeqLen = seq.size() / 2; subSeqLen >= minPatLen; --subSeqLen) {
             Log.debug("Looking for patterns of size %d. Patterns so far: "
                     + "%d.", subSeqLen, acceptedPatTree.getNumPatterns());
             // For every reference subsequence starting position
-            for (int refSeqBeg = 0; refSeqBeg < seqLen - 2 * subSeqLen + 1; ++refSeqBeg) {
+            for (int refSeqBeg = 0; refSeqBeg < seq.size() - 2 * subSeqLen + 1; ++refSeqBeg) {
                 detect(refSeqBeg, subSeqLen);
             }
         }
@@ -74,7 +69,7 @@ public class PatternDetector<T> {
 
     private void detect(int refSeqBeg, int subSeqLen) {
         // Extract current reference subsequence
-        Sequence<T> refSeq = seq.subSequence(refSeqBeg, refSeqBeg + subSeqLen);
+        ImmutableList<T> refSeq = seq.subList(refSeqBeg, refSeqBeg + subSeqLen);
 
         // Return if the pattern was already added to the covered pattern tree
         if (coveredPatTree.contains(refSeq)) {
@@ -82,7 +77,7 @@ public class PatternDetector<T> {
         }
         
         // Add pattern to covered pattern tree
-        coveredPatTree.addOccurrence(refSeq, 0);
+        coveredPatTree.addPattern(Pattern.of(refSeq, new HashSet<>(), new PatternTree<T>(refSeq)));
 
         // Find subsequences matching reference subsequence
         List<Integer> matches = findMatches(refSeq, refSeqBeg);
@@ -121,7 +116,7 @@ public class PatternDetector<T> {
         PatternTree<T> subPatterns = new PatternDetector<T>().detect(refSeq, minPatLen);
         
         // Add current pattern and its sub patterns to the accepted pattern tree
-        acceptedPatTree.addOccurrences(refSeq, matches, subPatterns);
+        acceptedPatTree.addPattern(Pattern.of(refSeq, new HashSet<>(matches), subPatterns));
         
         // Update accepted pattern coverage
         for (int matchBeg : matches) {
@@ -139,14 +134,15 @@ public class PatternDetector<T> {
      * @param refSeqBeg Starting position of reference subsequence
      * @return          List of starting positions of matching sequences, including the reference 
      */
-    private List<Integer> findMatches(Sequence<T> refSeq, int refSeqBeg) {
+    private List<Integer> findMatches(ImmutableList<T> refSeq, int refSeqBeg) {
         List<Integer> matches = new ArrayList<Integer>();
         int subSeqLen = refSeq.size();
 
         // Check for a matching pattern at each starting position after reference sequence's end 
-        for (int cmpSeqBeg = refSeqBeg + subSeqLen; cmpSeqBeg < seqLen - subSeqLen + 1;++cmpSeqBeg){
+        final int end = seq.size() - subSeqLen + 1;
+        for (int cmpSeqBeg = refSeqBeg + subSeqLen; cmpSeqBeg < end; ++cmpSeqBeg){
             // Extract subsequence to compare
-            Sequence<T> cmpSeq = seq.subSequence(cmpSeqBeg, cmpSeqBeg + subSeqLen);
+            ImmutableList<T> cmpSeq = seq.subList(cmpSeqBeg, cmpSeqBeg + subSeqLen);
             
             // Check if every elements of both sequence are equal
             if (refSeq.equals(cmpSeq)) {
@@ -190,13 +186,13 @@ public class PatternDetector<T> {
 
     private boolean areLinkedByAShorterPattern(int seqBegA, int seqBegB, int subSeqLen) {
         for (int patLen = 1; patLen < subSeqLen; ++patLen) {
-            Sequence<T> patSeq = seq.subSequence(seqBegA, seqBegA + patLen);
+            ImmutableList<T> patSeq = seq.subList(seqBegA, seqBegA + patLen);
             int altSeqBeg = seqBegA + patLen;
-            Sequence<T> altSeq = seq.subSequence(altSeqBeg, altSeqBeg + patLen);
+            ImmutableList<T> altSeq = seq.subList(altSeqBeg, altSeqBeg + patLen);
 
             while (patSeq.equals(altSeq) && altSeqBeg < seqBegB) {
                 altSeqBeg += patLen;
-                altSeq = seq.subSequence(altSeqBeg, altSeqBeg + patLen);
+                altSeq = seq.subList(altSeqBeg, altSeqBeg + patLen);
             }
             if (altSeqBeg >= seqBegB) {
                 return true;

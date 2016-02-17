@@ -5,7 +5,7 @@ import java.lang.reflect.Modifier;
 import java.util.LinkedList;
 import java.util.List;
 
-public class EnumRepresConstruc<A> {
+public class EnumCompositeObjectConstructor<A> {
 
     //====================================== CONSTANTS ===========================================\\
 
@@ -24,11 +24,11 @@ public class EnumRepresConstruc<A> {
 
     //--------------------------------- PUBLIC CONSTRUCTORS --------------------------------------\\
 
-    public EnumRepresConstruc(Class<A> clazz) {
+    public EnumCompositeObjectConstructor(Class<A> clazz) {
         this(clazz, DEFAULT_STATIC_STRING_CONSTRUCTORS_NAME);
     }
 
-    public EnumRepresConstruc(Class<A> clazz, String staticConstrucName) {
+    public EnumCompositeObjectConstructor(Class<A> clazz, String staticConstrucName) {
         this.clazz = clazz;
         this.staticConstruc = new LinkedList<Method>();
 

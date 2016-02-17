@@ -1,22 +1,22 @@
 package com.atompacman.nrstep;
 
 import java.io.IOException;
-import java.util.Arrays;
 
 import org.junit.Test;
 
-import com.atompacman.toolkat.misc.JSONUtils;
+import com.atompacman.toolkat.misc.Log;
+import com.google.common.collect.ImmutableList;
 
-public class TestPatternDetector {
+public final class TestPatternDetector {
 
-    //================================== FUNCTIONNAL TESTS =======================================\\
+    //
+    //  ~  DETECT  ~  //
+    //
 
     @Test
-    public void test() throws IOException {
-        Sequence<Character> sequence = new Sequence<Character>(Arrays.asList(
-                'A', 'B', 'A', 'B', 'C', 'A', 'C', 'A', 'A', 'B', 'A', 'B', 'C'));        
-        PatternDetector<Character> detector = new PatternDetector<>();
-        PatternTree<Character> patterns = detector.detect(sequence);
-        System.out.println(JSONUtils.toPrettyJSONString(patterns));
+    public void detect_MediumComplexity_CorrectReturn() throws IOException {
+        ImmutableList<Character> seq = TestHelper.createTestSequenceFrom("ABCXYZ__ABC_XYZ_CXY");
+        PatternTree<Character> patterns = new PatternDetector<Character>().detect(seq);
+        Log.debug("\n" + patterns.toString());
     }
 }

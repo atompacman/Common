@@ -14,10 +14,6 @@ public class JSONUtils {
     //====================================== CONSTANTS ===========================================\\
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
-    static {
-        //TODO
-        //MAPPER.enableDefaultTyping();
-    }
     
     
     
@@ -51,11 +47,11 @@ public class JSONUtils {
         MAPPER.writerFor(pojo.getClass()).writeValue(jsonFile, pojo);
     }
     
-    public static String toJSONString(Object pojo) throws IOException {
+    public static String toJSONString(Object pojo) throws JsonProcessingException {
         return MAPPER.writerFor(pojo.getClass()).writeValueAsString(pojo);
     }
     
-    public static String toPrettyJSONString(Object pojo) throws IOException {
+    public static String toPrettyJSONString(Object pojo) throws JsonProcessingException {
         return MAPPER.writerWithDefaultPrettyPrinter()
                 .forType(pojo.getClass()).writeValueAsString(pojo);
     }
@@ -63,6 +59,14 @@ public class JSONUtils {
     public static String toRobustJSONString(Object pojo) {
         try {
             return toJSONString(pojo);
+        } catch (IOException e) {
+            return e.getMessage();
+        }
+    }
+
+    public static String toRobustPrettyJSONString(Object pojo) {
+        try {
+            return toPrettyJSONString(pojo);
         } catch (IOException e) {
             return e.getMessage();
         }

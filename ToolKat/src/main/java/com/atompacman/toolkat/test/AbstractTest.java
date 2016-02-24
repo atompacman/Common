@@ -9,20 +9,21 @@ import java.net.URL;
 import org.junit.Rule;
 import org.junit.rules.ExpectedException;
 
-import com.atompacman.toolkat.IO;
+import com.atompacman.toolkat.IOUtils;
 
 public class AbstractTest {
 
-    //======================================= FIELDS =============================================\\
+    //
+    //  ~  FIELDS  ~  //
+    //
 
     @Rule
     public ExpectedException expectation = ExpectedException.none();
 
 
-
-    //==================================== STATIC METHODS ========================================\\
-
-    //---------------------------------------- EXPECT --------------------------------------------\\
+    //
+    //  ~  EXPECT  ~  //
+    //
 
     protected void expect(Class<? extends Throwable> expectedException) {
         expectation.expect(expectedException);
@@ -38,16 +39,18 @@ public class AbstractTest {
     }
 
 
-    //------------------------------------- LOAD RESOURCE ----------------------------------------\\
+    //
+    //  ~  LOAD RESOURCE  ~  //
+    //
 
-    protected File loadResources(String path) {
-        URL url = getClass().getResource(path);
+    protected File loadResource(String path) {
+        URL url = Thread.currentThread().getContextClassLoader().getResource(path);
         if (url == null) {
             fail("Test resource not found \"" + path + "\"");
         }
         File file = null;
         try {
-            file = IO.getFile(url.getPath());
+            file = IOUtils.getFile(url.getPath());
         } catch (FileNotFoundException e) {
             fail("Test resource not found \"" + path + "\"");
         }

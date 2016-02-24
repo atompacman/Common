@@ -6,13 +6,16 @@ import static org.junit.Assert.fail;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.Map.Entry;
-import java.util.Properties;
 
-import com.atompacman.toolkat.IO;
+import com.atompacman.toolkat.IOUtils;
+
+import java.util.Properties;
 
 public final class TextInputBasedTest {
 
-    //===================================== INNER TYPES ==========================================\\
+    //
+    //  ~  INNER TYPES  ~  //
+    //
 
     @FunctionalInterface
     public interface TestMethodWithOutput { 
@@ -25,8 +28,18 @@ public final class TextInputBasedTest {
     }
 
 
+    //
+    //  ~  INIT  ~  //
+    //
 
-    //======================================= METHODS ============================================\\
+    private TextInputBasedTest() {
+        
+    }
+    
+    
+    //
+    //  ~  LAUNCH  ~  //
+    //
 
     public static void launchTestsWithExpectedOutput(String testInputListFilePath,
                                                      TestMethodWithOutput method) {
@@ -57,7 +70,7 @@ public final class TextInputBasedTest {
     private static Properties loadTestListFile(String testInputListFilePath) {
         Properties testInputList = new Properties();
         try {
-            testInputList.load(new FileReader(IO.getResource(testInputListFilePath)));
+            testInputList.load(new FileReader(IOUtils.getResource(testInputListFilePath)));
         } catch (IOException e) {
             fail("Could not load test input list file at \"" + 
                     testInputListFilePath +"\": " + e.getMessage());

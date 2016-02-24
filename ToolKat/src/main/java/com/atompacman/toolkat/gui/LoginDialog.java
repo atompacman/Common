@@ -2,6 +2,7 @@ package com.atompacman.toolkat.gui;
 
 import java.awt.GridLayout;
 
+import javax.annotation.Nullable;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
@@ -10,11 +11,20 @@ import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 
-public class LoginDialog {
+public final class LoginDialog {
 
-    //==================================== STATIC METHODS ========================================\\
+    //
+    //  ~  INIT  ~  //
+    //
 
-    //------------------------------------ ASK FOR LOGIN -----------------------------------------\\
+    private LoginDialog() {
+        
+    }
+    
+    
+    //
+    //  ~  ASK FOR LOGIN  ~  //
+    //
 
     public static Login askForLogin() {
         return askForLogin("Login", null);
@@ -24,7 +34,7 @@ public class LoginDialog {
         return askForLogin(windowName, null);
     }
 
-    public static Login askForLogin(String windowName, String imageIconPath) {
+    public static Login askForLogin(String windowName, @Nullable String imageIconPath) {
         JPanel panel = new JPanel();
         panel.setLayout(new GridLayout(2,2));
         panel.add(new JLabel("Username:"));
@@ -49,9 +59,6 @@ public class LoginDialog {
             return null;
         }
 
-        String username = usernameField.getText();
-        String password = new String(passwordField.getPassword());
-
-        return new Login(username, password);
+        return Login.of(usernameField.getText(), new String(passwordField.getPassword()));
     }
 }

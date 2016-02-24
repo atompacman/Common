@@ -2,7 +2,7 @@ package com.atompacman.nrstep;
 
 import org.junit.Test;
 
-import com.atompacman.toolkat.misc.Log;
+import com.atompacman.toolkat.Log;
 
 public final class TestPattern {
 

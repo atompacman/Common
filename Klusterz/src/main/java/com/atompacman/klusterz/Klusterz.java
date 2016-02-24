@@ -23,7 +23,7 @@ import com.atompacman.klusterz.container.KClass;
 import com.atompacman.klusterz.initialMeans.InitialMeansSelection;
 import com.atompacman.klusterz.initialMeans.MajorityMeansSelection;
 import com.atompacman.klusterz.initialMeans.RandomMeansSelection;
-import com.atompacman.toolkat.misc.StringHelper;
+import com.atompacman.toolkat.StringUtils;
 
 public final class Klusterz extends App {
 
@@ -44,7 +44,7 @@ public final class Klusterz extends App {
     //---------------------------------------- INIT ----------------------------------------------\\
 
     public void init() {
-        logger.info(StringHelper.title(getName() + " " + getVersion()));
+        logger.info(StringUtils.title(getName() + " " + getVersion()));
         randGen = new Random(getDefaultProfile().getLong(Misc.RANDOM_SEED));
     }
 

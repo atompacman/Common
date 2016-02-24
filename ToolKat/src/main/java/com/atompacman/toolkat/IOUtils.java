@@ -1,22 +1,35 @@
 package com.atompacman.toolkat;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.nio.ByteBuffer;
 
-import org.apache.commons.io.IOUtils;
+public final class IOUtils {
 
-public class IO {
+    //
+    //  ~  INIT  ~  //
+    //
+
+    private IOUtils() {
+        
+    }
+    
+    
+    //
+    //  ~  MISC  ~  //
+    //
 
     public static String getPath(String...pathElem) {
         File file = buildInitFile(pathElem);
-
+        
         for (int i = 1; i < pathElem.length; ++i) {
             file = new File(file.getAbsolutePath(), pathElem[i]);
         }
+        
         return file.getAbsolutePath();
     }
 
@@ -44,12 +57,7 @@ public class IO {
     }
 
     private static File buildInitFile(String...pathElem) {
-        if (pathElem == null) {
-            throw new IllegalArgumentException("Null file path elements.");
-        }
-        if (pathElem.length == 0) {
-            throw new IllegalArgumentException("File path elements cannot be empty.");
-        }
+        checkArgument(pathElem.length != 0, "File path elements cannot be empty");
         return new File(pathElem[0]);
     }
     
@@ -67,9 +75,5 @@ public class IO {
             throw new FileNotFoundException("Cannot find resource \"" + path + "\".");
         }
         return is;
-    }
-
-    public static ByteBuffer getResourceByteBuffer(String path) throws IOException {
-        return ByteBuffer.wrap(IOUtils.toByteArray(getResourceAsStream(path)));
     }
 }

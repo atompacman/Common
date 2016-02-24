@@ -1,4 +1,4 @@
-package com.atompacman.toolkat.module;
+package com.atompacman.toolkat.task;
 
 import java.awt.Container;
 import java.awt.Dimension;
@@ -13,7 +13,6 @@ import javax.swing.tree.TreeSelectionModel;
 
 import com.atompacman.toolkat.gui.CenteredJFrame;
 import com.atompacman.toolkat.gui.GUIUtils;
-import com.atompacman.toolkat.module.Report.OutputFormat;
 
 @SuppressWarnings("serial")
 public final class ReportViewer extends CenteredJFrame {
@@ -58,10 +57,10 @@ public final class ReportViewer extends CenteredJFrame {
 
     //-------------------------------------- SET REPORT ------------------------------------------\\
 
-    public void setReport(Report report) {
+    public void setReport(TaskLogger logger) {
         DefaultMutableTreeNode root = new DefaultMutableTreeNode("Report");
         
-        for (Procedure proc : report.getProcedures()) {
+        for (Task proc : logger.getCompletedTasks()) {
             DefaultMutableTreeNode node = new DefaultMutableTreeNode(proc.getName());
             addChildNodes(proc, node);
             root.add(node);
@@ -84,18 +83,18 @@ public final class ReportViewer extends CenteredJFrame {
         setVisible(true);
     }
 
-    private void addChildNodes(Procedure procedure, DefaultMutableTreeNode node) {
-        for (Procedure proc : procedure.getChildProcedures()) {
+    private void addChildNodes(Task procedure, DefaultMutableTreeNode node) {
+        for (Task proc : procedure.getSubTasks()) {
             DefaultMutableTreeNode childNode = new DefaultMutableTreeNode(proc.getName());
             for (Observation ob : proc.getObservations()) {
-                childNode.add(new DefaultMutableTreeNode(ob.format(OutputFormat.FILE)));
+                childNode.add(new DefaultMutableTreeNode(ob.getMessage()));
             }
             addChildNodes(proc, childNode);
             node.add(childNode);
         }
     }
     
-    public static void showReportWindow(Report report) {
-        INSTANCE.setReport(report);
+    public static void showReportWindow(TaskLogger logger) {
+        INSTANCE.setReport(logger);
     }
 }

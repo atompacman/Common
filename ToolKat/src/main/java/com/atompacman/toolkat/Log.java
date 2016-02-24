@@ -1,4 +1,4 @@
-package com.atompacman.toolkat.misc;
+package com.atompacman.toolkat;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -9,14 +9,26 @@ import org.apache.logging.log4j.Logger;
 
 public final class Log {
 
-    //====================================== CONSTANTS ===========================================\\
+    //
+    //  ~  CONSTANTS  ~  //
+    //
 
     private static final Logger LOGGER = LogManager.getRootLogger();
-    private static final int MSG_LENGTH_BEFORE_VERBOSE = 130;
+    private static final int    MSG_LENGTH_BEFORE_VERBOSE = 130;
 
 
+    //
+    //  ~  INIT  ~  //
+    //
 
-    //======================================= METHODS ============================================\\
+    private Log() {
+        
+    }
+    
+    
+    //
+    //  ~  LOG  ~  //
+    //
 
     public static void debug(Object msg) {
         log(Level.DEBUG, 1, msg.toString());
@@ -58,18 +70,6 @@ public final class Log {
         log(Level.TRACE, 1, msg, params);
     }
 
-    public static void title(Level lvl, String msg, Object...params) {
-        title(lvl, 1, 0, msg, params);
-    }
-
-    public static void title(Level lvl, int spaces, String msg, Object...params) {
-        title(lvl, 1, spaces, msg, params);
-    }
-
-    public static void title(Level lvl, int stackDepthMod, int spaces, String msg, Object...params){
-        log(lvl, stackDepthMod + 1, StringHelper.title(String.format(msg, params), spaces));
-    }
-    
     public static void log(Level lvl, int stackDepthModifier, String msg, Object...params) {
         StringBuilder sb = new StringBuilder();
 

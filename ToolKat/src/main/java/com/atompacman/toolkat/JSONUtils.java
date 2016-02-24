@@ -1,4 +1,4 @@
-package com.atompacman.toolkat.misc;
+package com.atompacman.toolkat;
 
 import java.io.File;
 import java.io.IOException;
@@ -9,17 +9,27 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-public class JSONUtils {
+public final class JSONUtils {
 
-    //====================================== CONSTANTS ===========================================\\
+    //
+    //  ~  CONSTANTS  ~  //
+    //
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
     
     
-    
-    //======================================= METHODS ============================================\\
+    //
+    //  ~  INIT  ~  //
+    //
 
-    //---------------------------------------- PARSE ---------------------------------------------\\
+    private JSONUtils() {
+        
+    }
+    
+    
+    //
+    //  ~  PARSE  ~  //
+    //
 
     public static <T> T parse(File jsonFile, Class<T> objClass) throws JsonProcessingException, 
                                                                        IOException {
@@ -41,7 +51,9 @@ public class JSONUtils {
     }
     
 
-    //---------------------------------------- WRITE ---------------------------------------------\\
+    //
+    //  ~  SERIALIZE  ~  //
+    //
 
     public static void write(Object pojo, File jsonFile) throws IOException {
         MAPPER.writerFor(pojo.getClass()).writeValue(jsonFile, pojo);
@@ -56,7 +68,7 @@ public class JSONUtils {
                 .forType(pojo.getClass()).writeValueAsString(pojo);
     }
     
-    public static String toRobustJSONString(Object pojo) {
+    public static String toQuietJSONString(Object pojo) {
         try {
             return toJSONString(pojo);
         } catch (IOException e) {
@@ -64,7 +76,7 @@ public class JSONUtils {
         }
     }
 
-    public static String toRobustPrettyJSONString(Object pojo) {
+    public static String toQuietPrettyJSONString(Object pojo) {
         try {
             return toPrettyJSONString(pojo);
         } catch (IOException e) {

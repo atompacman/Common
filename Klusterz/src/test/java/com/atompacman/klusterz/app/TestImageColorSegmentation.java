@@ -14,7 +14,7 @@ public class TestImageColorSegmentation extends AbstractTest  {
 
     @Test
     public void completeTest() {
-        File inImg = loadResources("Jellyfish.jpg");
+        File inImg = loadResource("Jellyfish.jpg");
         File outImg = new File(inImg.getParentFile(), "Jellyseg.jpg");
         ImageColorSegmentation.segmentateAndGetClusters(inImg, outImg, 
                 5, Algorithm.K_MEANS, InitialMeans.RANDOM);

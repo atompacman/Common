@@ -20,7 +20,7 @@ public class TestCartesianPlanClustering extends AbstractTest {
         cpc.setClusteringAlgorithm(Algorithm.K_MEANS);
         cpc.setInitMeansSelection(InitialMeans.RANDOM);
 
-        File testFile = loadResources("completeTest.txt");
+        File testFile = loadResource("completeTest.txt");
         cpc.readCartesianPlanFile(testFile);
 
         for (int i = 0; i < 5; ++i) {

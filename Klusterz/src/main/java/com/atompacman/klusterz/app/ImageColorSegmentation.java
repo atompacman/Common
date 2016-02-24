@@ -23,9 +23,9 @@ import com.atompacman.klusterz.app.ImageColorSegmentation.ICSFlag;
 import com.atompacman.klusterz.container.ClusteringPlan;
 import com.atompacman.klusterz.container.ClusteringPlan.Algorithm;
 import com.atompacman.klusterz.container.ClusteringPlan.InitialMeans;
+import com.atompacman.toolkat.StringUtils;
 import com.atompacman.klusterz.container.Element;
 import com.atompacman.klusterz.container.KClass;
-import com.atompacman.toolkat.misc.StringHelper;
 
 public class ImageColorSegmentation implements Cmd<Klusterz, ICSFlag> {
 
@@ -94,7 +94,7 @@ public class ImageColorSegmentation implements Cmd<Klusterz, ICSFlag> {
                                                  Algorithm    algorithm,
                                                  InitialMeans initialMeans) {
 
-        logger.info(StringHelper.title("Image color segmentation application"));
+        logger.info(StringUtils.title("Image color segmentation application"));
         logger.info("Loading image at \"{}\".", inImg.getPath());
 
         BufferedImage referenceImg;

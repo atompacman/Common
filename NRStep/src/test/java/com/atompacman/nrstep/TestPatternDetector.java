@@ -4,7 +4,7 @@ import java.io.IOException;
 
 import org.junit.Test;
 
-import com.atompacman.toolkat.misc.Log;
+import com.atompacman.toolkat.Log;
 import com.google.common.collect.ImmutableList;
 
 public final class TestPatternDetector {

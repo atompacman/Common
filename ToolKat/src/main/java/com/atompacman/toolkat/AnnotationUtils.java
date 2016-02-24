@@ -1,9 +1,22 @@
-package com.atompacman.toolkat.misc;
+package com.atompacman.toolkat;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
 
-public class AnnotationUtils {
+public final class AnnotationUtils {
+
+    //
+    //  ~  INIT  ~  //
+    //
+
+    private AnnotationUtils() {
+        
+    }
+    
+    
+    //
+    //  ~  HAS ANNOTATION  ~  //
+    //
 
     public static boolean hasAnnotation(AnnotatedElement            elem,
                                         Class<? extends Annotation> annotClass) {

@@ -1,31 +1,23 @@
 package com.atompacman.toolkat.gui;
 
-public class Login {
+import com.google.auto.value.AutoValue;
 
-    //======================================= FIELDS =============================================\\
+@AutoValue
+public abstract class Login {
 
-    private final String username;
-    private final String password;
+    //
+    //  ~  FIELDS  ~  //
+    //
 
-
-
-    //======================================= METHODS ============================================\\
-
-    //---------------------------------- PACKAGE CONSTRUCTOR -------------------------------------\\
-
-    Login(String username, String password) {
-        this.username = username;
-        this.password = password;
-    }
+    public abstract String getUsername();
+    public abstract String getPassword();
 
 
-    //--------------------------------------- GETTERS --------------------------------------------\\
+    //
+    //  ~  INIT  ~  //
+    //
 
-    public String username() {
-        return username;
-    }
-
-    public String password() {
-        return password;
+    public static Login of(String username, String password) {
+        return new AutoValue_Login(username, password);
     }
 }

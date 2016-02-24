@@ -6,7 +6,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import java.util.List;
 import java.util.Set;
 
-import com.atompacman.toolkat.misc.JSONUtils;
+import com.atompacman.toolkat.JSONUtils;
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.auto.value.AutoValue;
@@ -69,7 +69,7 @@ public abstract class Pattern<T> {
      * Note: The class is not JSON serializable/deserializable.
      */
     public String toString() {
-        return JSONUtils.toRobustPrettyJSONString(this);
+        return JSONUtils.toQuietPrettyJSONString(this);
     }
     
     /** 

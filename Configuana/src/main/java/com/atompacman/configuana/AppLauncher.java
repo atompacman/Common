@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-import com.atompacman.toolkat.IO;
+import com.atompacman.toolkat.IOUtils;
 import com.atompacman.toolkat.exception.Throw;
 
 public class AppLauncher {
@@ -95,7 +95,7 @@ public class AppLauncher {
 
     private static void addJarToClassLoader(String jarPath) {
         try {
-            URL[] newUrl = new URL[]{ IO.getFile(jarPath).toURI().toURL() };
+            URL[] newUrl = new URL[]{ IOUtils.getFile(jarPath).toURI().toURL() };
             ClassLoader currCL = Thread.currentThread().getContextClassLoader();
             Thread.currentThread().setContextClassLoader(new URLClassLoader(newUrl, currCL));
         } catch (Exception e) {
@@ -109,7 +109,7 @@ public class AppLauncher {
         String appFilePath = CONFIGUANA_DIR_IN_JAR + APP_FILE; 
         InputStream is = null;
         try {
-            is = IO.getResourceAsStream(appFilePath);
+            is = IOUtils.getResourceAsStream(appFilePath);
         } catch (FileNotFoundException e1) {
             Throw.aRuntime(AppLauncherException.class, "Could not find a "
                     + "configuana app file at \"" + appFilePath + "\"");
@@ -191,7 +191,7 @@ public class AppLauncher {
             }
         };
         try {
-            libInfo.load(IO.getResourceAsStream(CONFIGUANA_DIR_IN_JAR + infoFile));
+            libInfo.load(IOUtils.getResourceAsStream(CONFIGUANA_DIR_IN_JAR + infoFile));
         } catch (IOException e) {
             Throw.aRuntime(AppLauncherException.class, "Could not find "
                     + "configuana library info file \"" + infoFile + "\"");

@@ -31,9 +31,9 @@ import com.atompacman.klusterz.container.ClusteringPlan.Algorithm;
 import com.atompacman.klusterz.container.ClusteringPlan.InitialMeans;
 import com.atompacman.klusterz.container.Element;
 import com.atompacman.klusterz.container.KClass;
-import com.atompacman.toolkat.IO;
+import com.atompacman.toolkat.IOUtils;
+import com.atompacman.toolkat.StringUtils;
 import com.atompacman.toolkat.exception.Throw;
-import com.atompacman.toolkat.misc.StringHelper;
 
 public class CartesianPlanClustering implements Cmd<Klusterz, CPCFlag> {
 
@@ -138,7 +138,7 @@ public class CartesianPlanClustering implements Cmd<Klusterz, CPCFlag> {
     //--------------------------------------- EXECUTE --------------------------------------------\\
 
     public void execute(Klusterz app, CmdArgs<CPCFlag> args) {
-        logger.info(StringHelper.title(CP + " clustering application", 1));
+        logger.info(StringUtils.title(CP + " clustering application", 1));
 
         // Read Cartesian plan
         clusterAlgo     = Algorithm.valueOf   (args.getValue(CPCFlag.ALGORITHM));
@@ -149,7 +149,7 @@ public class CartesianPlanClustering implements Cmd<Klusterz, CPCFlag> {
         String cartesianPlanDescPath = args.getMainArgs().get(0);
 
         try {
-            readCartesianPlanFile(IO.getFile(cartesianPlanDescPath));
+            readCartesianPlanFile(IOUtils.getFile(cartesianPlanDescPath));
         } catch (Exception e) {
             throw new RuntimeException("Could not read cartesian plan "
                     + "file at \"" + cartesianPlanDescPath + "\".", e);
@@ -170,7 +170,7 @@ public class CartesianPlanClustering implements Cmd<Klusterz, CPCFlag> {
         int imgHeight = Integer.parseInt(args.getValue(CPCFlag.FINAL_IMAGE_SIZE_HEIGHT));
 
         try {
-            writeResultImage(IO.getFile(outputFile), new Dimension(imgWidth, imgHeight));
+            writeResultImage(IOUtils.getFile(outputFile), new Dimension(imgWidth, imgHeight));
         } catch (Exception e) {
             throw new RuntimeException("Could not save final image at \"" + outputFile + "\".", e);
         }

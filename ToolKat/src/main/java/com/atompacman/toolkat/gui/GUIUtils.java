@@ -12,11 +12,22 @@ import javax.swing.JTextArea;
 import javax.swing.SwingConstants;
 import javax.swing.UIManager;
 
-import com.atompacman.toolkat.misc.Log;
+import com.atompacman.toolkat.Log;
 
-public class GUIUtils {
+public final class GUIUtils {
 
-    //----------------------------------- DISPLAY IMAGE ------------------------------------------\\
+    //
+    //  ~  INIT  ~  //
+    //
+
+    private GUIUtils() {
+        
+    }
+    
+    
+    //
+    //  ~  DISPLAY IMAGE  ~  //
+    //
 
     public static void displayImageInWindow(BufferedImage image) {
         JFrame frame = new CenteredJFrame(image.getWidth(), image.getHeight());
@@ -26,8 +37,10 @@ public class GUIUtils {
         frame.setVisible(true);
     }
 
-
-    //--------------------------------------- LABELS ---------------------------------------------\\
+    
+    //
+    //  ~  LABELS  ~  //
+    //
 
     public static JLabel createLabel(String text, int size) {
         return createLabel(text, Color.BLACK, size, SwingConstants.LEFT);
@@ -52,7 +65,9 @@ public class GUIUtils {
     }
 
 
-    //------------------------------------- Text area --------------------------------------------\\
+    //
+    //  ~  TEXT AREAS  ~  //
+    //
 
     public static JTextArea createTextArea(String text, int size) {
         return createTextArea(text, Color.BLACK, size);
@@ -67,7 +82,9 @@ public class GUIUtils {
     }
 
 
-    //--------------------------------------- Other ----------------------------------------------\\
+    //
+    //  ~  MISC  ~  //
+    //
 
     public static void setSystemLookAndFeel() {
         try {

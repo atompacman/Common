@@ -8,9 +8,9 @@ import javax.swing.JFrame;
 @SuppressWarnings("serial")
 public class CenteredJFrame extends JFrame {
 
-    //======================================= METHODS ============================================\\
-
-    //--------------------------------- PUBLIC CONSTRUCTORS --------------------------------------\\
+    //
+    //  ~  INIT  ~  //
+    //
 
     public CenteredJFrame(int width, int height) {
         this(new Dimension(width, height));
@@ -18,16 +18,18 @@ public class CenteredJFrame extends JFrame {
 
     public CenteredJFrame(Dimension winDim) {
         setSize(winDim);
-        centerFrame();
+        center();
     }
 
-    
-    //------------------------------------- CENTER FRAME -----------------------------------------\\
 
-    protected void centerFrame() {
+    //
+    //  ~  UTILS  ~  //
+    //
+
+    protected void center() {
         Dimension dimension = Toolkit.getDefaultToolkit().getScreenSize();
-        int x = (int) ((dimension.getWidth()  - getWidth()) / 2);
-        int y = (int) ((dimension.getHeight() - getHeight()) / 2);
+        int x = (int)((dimension.getWidth()  - getWidth ()) / 2);
+        int y = (int)((dimension.getHeight() - getHeight()) / 2);
         setLocation(x, y);
     }
 }

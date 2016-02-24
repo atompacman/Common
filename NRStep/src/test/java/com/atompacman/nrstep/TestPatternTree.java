@@ -4,7 +4,7 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
-import com.atompacman.toolkat.misc.Log;
+import com.atompacman.toolkat.Log;
 
 public final class TestPatternTree {
 

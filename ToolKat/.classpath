@@ -22,5 +22,28 @@
 			<attribute name="maven.pomderived" value="true"/>
 		</attributes>
 	</classpathentry>
+	<classpathentry kind="src" path=".apt_generated">
+		<attributes>
+			<attribute name="optional" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="C:/Users/Atompacman/.m2/repository/com/google/code/findbugs/jsr305/3.0.1/jsr305-3.0.1.jar">
+		<attributes>
+			<attribute name="maven.pomderived" value="true"/>
+			<attribute name="maven.groupId" value="com.google.code.findbugs"/>
+			<attribute name="maven.artifactId" value="jsr305"/>
+			<attribute name="maven.version" value="3.0.1"/>
+			<attribute name="maven.scope" value="compile"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="C:/Users/Atompacman/.m2/repository/org/apache/commons/commons-lang3/3.4/commons-lang3-3.4.jar" sourcepath="C:/Users/Atompacman/.m2/repository/org/apache/commons/commons-lang3/3.4/commons-lang3-3.4-sources.jar">
+		<attributes>
+			<attribute name="maven.pomderived" value="true"/>
+			<attribute name="maven.groupId" value="org.apache.commons"/>
+			<attribute name="maven.artifactId" value="commons-lang3"/>
+			<attribute name="maven.version" value="3.4"/>
+			<attribute name="maven.scope" value="compile"/>
+		</attributes>
+	</classpathentry>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>

@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
-import com.atompacman.toolkat.misc.Log;
+import com.atompacman.toolkat.Log;
 import com.google.common.collect.ImmutableList;
 
 public final class PatternDetector<T> {

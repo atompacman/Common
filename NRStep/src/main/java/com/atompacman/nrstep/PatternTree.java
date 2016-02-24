@@ -8,7 +8,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 
-import com.atompacman.toolkat.misc.JSONUtils;
+import com.atompacman.toolkat.JSONUtils;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
@@ -200,6 +200,6 @@ public final class PatternTree<E> {
     //
     
     public String toString() {
-        return JSONUtils.toRobustPrettyJSONString(Pattern.of(seq, new HashSet<>(), this));
+        return JSONUtils.toQuietPrettyJSONString(Pattern.of(seq, new HashSet<>(), this));
     }
 }

@@ -20,26 +20,23 @@ public final class TaskLogger {
 
     private final List<Task> completedTask;
 
-    private Task  currTask;
-    private Level verbLvl;
+    private Optional<Task>  currTask;
+    private Level 			verbLvl;
 
     
     //
     //  ~  INIT  ~  //
     //
 
-    public TaskLogger(Enum<?> task, Object...taskNameArgs) {
-        this(task, Level.INFO, taskNameArgs);
+    public TaskLogger() {
+        this(Level.INFO);
     }
     
-    public TaskLogger(Enum<?> task, Level verbLvl, Object...taskNameArgs) {
+    public TaskLogger(Level verbLvl) {
         this.completedTask = new LinkedList<>();
 
-        this.currTask = null;
+        this.currTask = Optional.empty();
         this.verbLvl  = verbLvl;
-        
-        // Start first task
-        startTask(task, Optional.empty(), taskNameArgs);
     }
 
     
@@ -49,33 +46,38 @@ public final class TaskLogger {
 
     public void startTask(Enum<?> task, Object...taskNameArgs) {
         // End current task
-        currTask.stop();
-        completedTask.add(currTask);
+    	if (currTask.isPresent()) {
+            currTask.get().stop();
+            completedTask.add(currTask.get());
+    	}
         
         // Start task
-        startTask(task, Optional.empty(), taskNameArgs);
+        startTaskImpl(task, Optional.empty(), taskNameArgs);
     }
 
     public void startSubtask(Enum<?> subtask, Object...taskNameArgs) {
-        startTask(subtask, Optional.of(currTask.getCurrentSubtask()), taskNameArgs);
+    	checkArgument(currTask.isPresent(), "Cannot start subtask when no task is started");
+        startTaskImpl(subtask, Optional.of(currTask.get().getCurrentSubtask()), taskNameArgs);
     }
 
     public void startSubtaskOf(Enum<?> parentTask, Enum<?> subtask, Object...taskNameArgs) {
+    	checkArgument(currTask.isPresent(), "Cannot start subtask when no task is started");
+    	
         // Extract parent task description annotations
         Task.Description parentDesc=EnumUtils.extractAnnotation(parentTask, Task.Description.class);
         
-        Optional<Task> parent = Optional.of(currTask);
+        Optional<Task> parent = Optional.of(currTask.get());
         while (parent.get().getDescription() != parentDesc) {
             parent = parent.get().getParentTask();
             checkArgument(parent.isPresent(), "Task \"%s\" has no subtask \"%s\"", 
                     currTask, String.format(parentDesc.nameFormat(), taskNameArgs));
         }
-        startTask(subtask, parent, taskNameArgs);
+        startTaskImpl(subtask, parent, taskNameArgs);
     }
 
-    private void startTask(Enum<?>        subtask,
-                           Optional<Task> parentTask, 
-                           Object...      taskNameArgs) {
+    private void startTaskImpl(Enum<?>        subtask,
+	                           Optional<Task> parentTask, 
+	                           Object...      taskNameArgs) {
 
         // Extract task description annotation
         Task.Description desc = EnumUtils.extractAnnotation(subtask, Task.Description.class);
@@ -86,7 +88,7 @@ public final class TaskLogger {
             subtsk = parentTask.get().createSubTask(desc, taskNameArgs);
         } else {
             subtsk = new Task(desc, taskNameArgs);
-            currTask = subtsk;
+            currTask = Optional.of(subtsk);
         }
 
         // Log event
@@ -99,31 +101,27 @@ public final class TaskLogger {
     //
 
     public void log(String format, Object...args) {
-        currTask.addObservation(new Observation(String.format(format, args), 
-                                                currTask.getGeneration(), 
-                                                verbLvl, 
-                                                1));
+    	logImpl(verbLvl, 1, format, args);
     }
 
     public void log(int stackTraceMod, String format, Object...args) {
-        currTask.addObservation(new Observation(String.format(format, args), 
-                                                currTask.getGeneration(), 
-                                                verbLvl, 
-                                                stackTraceMod + 1));
+    	logImpl(verbLvl, stackTraceMod + 1, format, args);
     }
 
     public void log(Level verbLvl, String format, Object...args) {
-        currTask.addObservation(new Observation(String.format(format, args), 
-                                                currTask.getGeneration(), 
-                                                verbLvl, 
-                                                1));
+    	logImpl(verbLvl, 1, format, args);
+
     }
 
     public void log(Level verbose, int stackTraceMod, String format, Object...args) {
-        currTask.addObservation(new Observation(String.format(format, args), 
-                                                currTask.getGeneration(), 
-                                                verbLvl, 
-                                                stackTraceMod + 1));
+    	logImpl(verbose, stackTraceMod + 1, format, args);
+    }
+    
+    private void logImpl(Level verbose, int stackTraceMod, String format, Object...args) {
+    	checkArgument(currTask.isPresent(), "Cannot log when no task is started");
+    	String msg = String.format(format, args);
+    	int gen = currTask.get().getGeneration();
+        currTask.get().addObservation(new Observation(msg, gen, verbLvl, stackTraceMod + 1));
     }
     
     
@@ -132,17 +130,16 @@ public final class TaskLogger {
     //
     
     public void signal(Enum<?> anomaly, Object...args) {
-        currTask.addObservation(Anomaly.of(anomaly, currTask.getGeneration(), 1));
+    	signalImpl(anomaly, 1, args);
     }
 
     public <T extends Exception> void signalException(Enum<?>   anomaly, 
                                                       Class<T>  excepClass, 
                                                       Object... args) throws T {
 
-        Anomaly ano = Anomaly.of(anomaly, currTask.getGeneration(), 1);
-        currTask.addObservation(ano);
+    	String msg = signalImpl(anomaly, 1, args);
         try {
-            throw excepClass.getConstructor(String.class).newInstance(ano.getMessage());
+            throw excepClass.getConstructor(String.class).newInstance(msg);
         } catch (InstantiationException    | IllegalAccessException | IllegalArgumentException | 
                  InvocationTargetException | NoSuchMethodException  | SecurityException e) {
             throw new RuntimeException(e);
@@ -154,15 +151,20 @@ public final class TaskLogger {
                                                       Class<T>  excepClass, 
                                                       Object... args) throws T {
 
-        Anomaly ano = Anomaly.of(anomaly, currTask.getGeneration(), 1);
-        currTask.addObservation(ano);
+    	String msg = signalImpl(anomaly, 1, args);
         try {
-            throw excepClass.getConstructor(String.class, Throwable.class).
-                newInstance(ano.getMessage(), cause);
+            throw excepClass.getConstructor(String.class, Throwable.class).newInstance(msg, cause);
         } catch (InstantiationException    | IllegalAccessException | IllegalArgumentException | 
-                InvocationTargetException | NoSuchMethodException  | SecurityException e) {
+                 InvocationTargetException | NoSuchMethodException  | SecurityException e) {
             throw new RuntimeException(e);
         }
+    }
+    
+    private String signalImpl(Enum<?> anomaly, int stackTraceMod, Object...args) {
+    	checkArgument(currTask.isPresent(), "Cannot signal anomalies when no task is started");
+        Anomaly ano = Anomaly.of(anomaly, currTask.get().getGeneration(), stackTraceMod + 1);
+        currTask.get().addObservation(ano);
+        return ano.getMessage();
     }
     
     
@@ -172,6 +174,16 @@ public final class TaskLogger {
 
     public void setVerboseLevel(Level verbLvl) {
         this.verbLvl = verbLvl;
+    }
+    
+    
+    //
+	//  ~  RESET  ~  //
+	//
+    
+    public void reset() {
+    	completedTask.clear();
+    	currTask = Optional.empty();
     }
     
     

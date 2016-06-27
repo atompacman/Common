@@ -1,6 +1,5 @@
 package com.atompacman.toolkat.task;
 
-import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import org.apache.logging.log4j.Level;
@@ -8,13 +7,6 @@ import org.apache.logging.log4j.Level;
 import com.atompacman.toolkat.Log;
 
 public class Observation {
-
-    //
-    //  ~  CONSTANTS  ~  //
-    //
-
-    private static final String DATE_FORMAT = "yyyy/MM/dd HH:mm:ss:SSS";
-    
     
     //
     //  ~  FIELDS  ~  //
@@ -26,7 +18,6 @@ public class Observation {
     
     // Message
     private final String msg;
-    private final int    indentLvl;
     private final Level  verbLvl;
     
 
@@ -34,16 +25,14 @@ public class Observation {
     //  ~  INIT  ~  //
     //
 
-    Observation(String  msg, 
-                int     indentLvl, 
+    Observation(String  msg,
                 Level   verbLvl, 
                 int     stackTraceMod) {
         
-        this(msg, indentLvl, verbLvl, true, stackTraceMod);
+        this(msg, verbLvl, true, stackTraceMod + 1);
     }
     
-    Observation(String  msg, 
-                int     indentLvl, 
+    Observation(String  msg,
                 Level   verbLvl, 
                 boolean doLog, 
                 int     stackTraceMod) {
@@ -58,13 +47,12 @@ public class Observation {
         this.creationTime = new Date();
         
         // Save message and formatting parameters
-        this.msg       = msg;
-        this.indentLvl = indentLvl;
-        this.verbLvl   = verbLvl;
+        this.msg     = msg;
+        this.verbLvl = verbLvl;
         
         // Log if needed
         if (doLog) {
-            Log.log(verbLvl, stackTraceMod + 1, getMessage());
+            Log.log(verbLvl, stackTraceMod + 1, msg);
         }
     }
 
@@ -81,7 +69,7 @@ public class Observation {
         return creationTime;
     }
 
-    public String getRawMessage() {
+    public String getMessage() {
         return msg;
     }
 
@@ -94,18 +82,8 @@ public class Observation {
     //  ~  SERIALIZATION  ~  //
     //
 
-    public String getMessage() {
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < indentLvl; ++i) {
-            sb.append('\t');
-        }
-        sb.append('[').append(new SimpleDateFormat(DATE_FORMAT).format(creationTime)).append("] ");
-        sb.append(msg);
-        return sb.toString();
-    }
-    
     @Override
     public String toString() {
-        return getRawMessage();
+        return msg;
     }
 }

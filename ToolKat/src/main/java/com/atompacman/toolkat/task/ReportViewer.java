@@ -17,25 +17,31 @@ import com.atompacman.toolkat.gui.GUIUtils;
 @SuppressWarnings("serial")
 public final class ReportViewer extends CenteredJFrame {
 
-    //====================================== CONSTANTS ===========================================\\
-
+    //
+    //  ~  CONSTANTS  ~  //
+    //
+    
     private static final Dimension    WIN_DIM         = new Dimension(800, 1000);
     private static final int          DETAILS_PANEL_H = 300;
     private static final ReportViewer INSTANCE        = new ReportViewer();
 
-    
-    
-    //======================================= FIELDS =============================================\\
 
+    //
+    //  ~  FIELDS  ~  //
+    //
+    
     private JScrollPane treePanel;
     private JPanel      detailsPanel;
     
     
+    //
+    //  ~  INIT  ~  //
+    //
     
-    //======================================= METHODS ============================================\\
-
-    //------------------------------------- CONSTRUCTORS -----------------------------------------\\
-
+    public static void showReportWindow(TaskMonitor monitor) {
+        INSTANCE.setReport(monitor);
+    }
+    
     private ReportViewer() {
         super(WIN_DIM);
         
@@ -55,16 +61,14 @@ public final class ReportViewer extends CenteredJFrame {
     }
 
 
-    //-------------------------------------- SET REPORT ------------------------------------------\\
-
-    public void setReport(TaskLogger logger) {
-        DefaultMutableTreeNode root = new DefaultMutableTreeNode("Report");
+    //
+    //  ~  SET REPORT  ~  //
+    //
+    
+    public void setReport(TaskMonitor monitor) {
+        DefaultMutableTreeNode root = new DefaultMutableTreeNode(monitor.getTaskName());
         
-        for (Task proc : logger.getCompletedTasks()) {
-            DefaultMutableTreeNode node = new DefaultMutableTreeNode(proc.getName());
-            addChildNodes(proc, node);
-            root.add(node);
-        }
+        addChildNodes(monitor, root);
         
         JTree tree = new JTree(root);
         tree.setEditable(false);
@@ -83,18 +87,14 @@ public final class ReportViewer extends CenteredJFrame {
         setVisible(true);
     }
 
-    private void addChildNodes(Task procedure, DefaultMutableTreeNode node) {
-        for (Task proc : procedure.getSubTasks()) {
-            DefaultMutableTreeNode childNode = new DefaultMutableTreeNode(proc.getName());
-            for (Observation ob : proc.getObservations()) {
+    private void addChildNodes(TaskMonitor monitor, DefaultMutableTreeNode node) {
+        for (TaskMonitor submonitor : monitor.getSubtasks()) {
+            DefaultMutableTreeNode childNode = new DefaultMutableTreeNode(submonitor.getTaskName());
+            for (Observation ob : submonitor.getObservations()) {
                 childNode.add(new DefaultMutableTreeNode(ob.getMessage()));
             }
-            addChildNodes(proc, childNode);
+            addChildNodes(submonitor, childNode);
             node.add(childNode);
         }
-    }
-    
-    public static void showReportWindow(TaskLogger logger) {
-        INSTANCE.setReport(logger);
     }
 }

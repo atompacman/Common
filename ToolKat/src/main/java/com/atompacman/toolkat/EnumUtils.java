@@ -1,8 +1,10 @@
 package com.atompacman.toolkat;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
 
 public final class EnumUtils {
 
@@ -41,10 +43,13 @@ public final class EnumUtils {
     
     public static <T extends Annotation> T extractAnnotation(Enum<?> enumCst, Class<T> annotClazz) {
         try {
-            return enumCst.getClass().getField(enumCst.toString()).getAnnotation(annotClazz);
+            Field field = enumCst.getClass().getField(enumCst.toString());
+            T annotation = field.getAnnotation(annotClazz);
+            checkNotNull(annotation, "Could not find annotation \"%s\" on enum constant \"%s\"", 
+                         annotClazz.getName(), enumCst.name());
+            return annotation;
         } catch (Exception e) {
-            throw new IllegalArgumentException(enumCst + " is not an enum field "
-                    + "with the " + annotClazz.getSimpleName() + " annotation", e);
+            throw new RuntimeException();
         }
     }
 

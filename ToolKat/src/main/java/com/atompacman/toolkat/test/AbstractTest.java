@@ -43,7 +43,12 @@ public class AbstractTest {
     //  ~  LOAD RESOURCE  ~  //
     //
 
-    protected File loadResource(String path) {
+    protected File loadResource() {
+        return loadResource(Thread.currentThread().getStackTrace()[2].getMethodName());
+    }
+    
+    protected File loadResource(String resName) {
+        String path = getClass().getCanonicalName().replace(".", "/") + "/" + resName;
         URL url = Thread.currentThread().getContextClassLoader().getResource(path);
         if (url == null) {
             fail("Test resource not found \"" + path + "\"");

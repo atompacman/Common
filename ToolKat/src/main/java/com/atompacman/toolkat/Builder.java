@@ -1,18 +1,24 @@
 package com.atompacman.toolkat;
 
-import java.util.Optional;
+import com.atompacman.toolkat.task.TaskMonitor;
 
-import com.atompacman.toolkat.task.TaskLogger;
+public abstract class Builder<T> {
 
-// TODO REMOVE
-public class Builder<T> {
-    
-    protected TaskLogger taskLogger;
-    
-    protected Builder(Optional<TaskLogger> taskLogger) {
+    //
+    //  ~  BUILD  ~  //
+    //
+
+    protected abstract T buildImpl(TaskMonitor monitor);
+
+    public abstract void reset();
+
+    public final T build() {
+        return build(TaskMonitor.of("Build"));
     }
     
-    public T build() {
-        return null;
+    public final T build(TaskMonitor monitor) {
+        T t = buildImpl(monitor);
+        reset();
+        return t;
     }
 }

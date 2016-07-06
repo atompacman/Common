@@ -7,7 +7,7 @@ import org.junit.Test;
 import com.atompacman.toolkat.EnumCompositeObjectConstructor;
 import com.atompacman.toolkat.test.AbstractTest;
 
-public class TestEnumRepresConstructor extends AbstractTest {
+public class TestEnumCompositeObjectConstructor extends AbstractTest {
     
     //
     //  ~  INNER TYPES  ~  //

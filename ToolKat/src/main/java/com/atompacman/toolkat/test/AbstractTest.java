@@ -3,13 +3,10 @@ package com.atompacman.toolkat.test;
 import static org.junit.Assert.fail;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.net.URL;
 
 import org.junit.Rule;
 import org.junit.rules.ExpectedException;
-
-import com.atompacman.toolkat.IOUtils;
 
 public class AbstractTest {
 
@@ -53,10 +50,8 @@ public class AbstractTest {
         if (url == null) {
             fail("Test resource not found \"" + path + "\"");
         }
-        File file = null;
-        try {
-            file = IOUtils.getFile(url.getPath());
-        } catch (FileNotFoundException e) {
+        File file = new File(url.getFile());
+        if (!file.exists()) {
             fail("Test resource not found \"" + path + "\"");
         }
         return file;

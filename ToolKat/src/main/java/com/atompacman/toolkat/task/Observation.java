@@ -25,14 +25,16 @@ public class Observation {
     //  ~  INIT  ~  //
     //
 
-    Observation(String  msg,
-                Level   verbLvl, 
-                int     stackTraceMod) {
+    Observation(String taskName,
+                String msg,
+                Level  verbLvl, 
+                int    stackTraceMod) {
         
-        this(msg, verbLvl, true, stackTraceMod + 1);
+        this(taskName, msg, verbLvl, true, stackTraceMod + 1);
     }
     
-    Observation(String  msg,
+    Observation(String  taskName,
+                String  msg,
                 Level   verbLvl, 
                 boolean doLog, 
                 int     stackTraceMod) {
@@ -52,7 +54,7 @@ public class Observation {
         
         // Log if needed
         if (doLog) {
-            Log.log(verbLvl, stackTraceMod + 1, msg);
+            Log.log(verbLvl, stackTraceMod + 1, "%s %s", taskName, msg);
         }
     }
 

@@ -18,27 +18,30 @@ public final class Anomaly extends Observation {
     //  ~  INIT  ~  //
     //
 
-    static Anomaly of(Enum<?> anomaly, int stackTraceMod, Object...detailsArgs) {
+    static Anomaly of(Enum<?> anomaly, String taskName, int stackTraceMod, Object...detailsArgs) {
         // Extract description annotation
         AnomalyDescription desc = EnumUtils.extractAnnotation(anomaly, AnomalyDescription.class);
 
         // Create message
         String msg = new StringBuilder()
                             .append(desc.name())
+                            .append(" (")
                             .append(StringUtils.capitalize(desc.consequences()))
+                            .append(") ")
                             .append(String.format(desc.detailsFormat(), detailsArgs)).toString();
         
         // Create anomaly
         Level verbose = desc.severity().getVerboseLevel();
-        return new Anomaly(desc, msg, verbose, stackTraceMod + 1);
+        return new Anomaly(desc, taskName, msg, verbose, stackTraceMod + 1);
     }
     
-    private Anomaly(AnomalyDescription desc, 
+    private Anomaly(AnomalyDescription desc,
+                    String             taskName,
                     String             msg,
                     Level              verbLvl, 
                     int                stackTraceMod) {
         
-        super(msg, verbLvl, true, stackTraceMod + 1);
+        super(taskName, msg, verbLvl, true, stackTraceMod + 1);
         
         this.desc = desc;
     }

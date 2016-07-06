@@ -15,14 +15,35 @@ public final class Log {
 
     private static final Logger LOGGER = LogManager.getRootLogger();
     private static final int    MSG_LENGTH_BEFORE_VERBOSE = 130;
-
+    
+    
+    //
+    //  ~  CONSTANTS  ~  //
+    //
+    
+    private static String ignoredPackagePart;
+    
 
     //
     //  ~  INIT  ~  //
     //
 
+    static {
+        ignoredPackagePart = "";
+    }
+    
     private Log() {
         
+    }
+    
+    
+    //
+    //  ~  SETTERS  ~  //
+    //
+    
+    public static void setIgnoredPackagePart(String ignored) {
+        ignoredPackagePart = ignored.charAt(ignored.length() - 1) == '.' ? ignored : ignored + ".";
+        info("Logger is set to ignore package part \"%s\" when printing calling methods", ignored);
     }
     
     
@@ -85,7 +106,7 @@ public final class Log {
         if (stackLvl >= stack.length) {
             sb.append("STACK TRACE DEPTH MODIFIER ERROR");
         } else {
-            sb.append(stack[stackLvl]);
+            sb.append(stack[stackLvl].toString().replaceFirst(ignoredPackagePart, ""));
         }
 
         // Add blank spaces if needed
@@ -94,7 +115,7 @@ public final class Log {
         }
 
         // Append verbose
-        sb.append(String.format("[%5s ] ", lvl));
+        sb.append('{').append(lvl.name().charAt(0)).append('}').append(' ');
 
         // Append message
         sb.append(String.format(msg.toString(), params));

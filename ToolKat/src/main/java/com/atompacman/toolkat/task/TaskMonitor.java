@@ -8,6 +8,7 @@ import java.util.Optional;
 import org.apache.commons.lang3.time.StopWatch;
 import org.apache.logging.log4j.Level;
 
+import com.atompacman.toolkat.Log;
 import com.google.common.collect.ImmutableList;
 
 public final class TaskMonitor {
@@ -17,13 +18,33 @@ public final class TaskMonitor {
     //
     
     @FunctionalInterface
-    public interface Task<T, E extends Exception> {
-        T execute(TaskMonitor monitor) throws E;
+    public interface Task<T> {
+        T execute(TaskMonitor monitor);
     }
     
     @FunctionalInterface
-    public interface SafeTask<T> {
-        T executeSafe(TaskMonitor monitor);
+    public interface TaskExcep<T, E extends Exception> {
+        T execute(TaskMonitor monitor) throws E;
+    }
+
+    @FunctionalInterface
+    public interface SideEffectTask {
+        void execute(TaskMonitor monitor);
+    }
+    
+    @FunctionalInterface
+    public interface SideEffectTaskExcep<E extends Exception> {
+        void execute(TaskMonitor monitor) throws E;
+    }
+    
+    @FunctionalInterface
+    public interface SideEffetMonoArgTask<T> {
+        void execute(TaskMonitor monitor, T arg);
+    }
+    
+    @FunctionalInterface
+    public interface SideEffetMonoArgTaskExcep<T, E extends Exception> {
+        void execute(TaskMonitor monitor, T arg) throws E;
     }
     
     
@@ -33,7 +54,8 @@ public final class TaskMonitor {
 
     private final String taskName;
     private final String taskDesc;
-    private final Level  verbLvl;
+    
+    private Level  verbLvl;
     
     private final List<Observation>       obs;
     private final Optional<TaskMonitor>   parentTask;
@@ -68,6 +90,7 @@ public final class TaskMonitor {
         
         this.taskName = taskName;
         this.taskDesc = taskDesc;
+        
         this.verbLvl  = verbLvl;
         
         this.obs        = new LinkedList<>();
@@ -80,71 +103,126 @@ public final class TaskMonitor {
     //
     //  ~  EXECUTE SUBTASKS  ~  //
     //
-    
-    public <T, E extends Exception> 
-    T executeSubtask(String taskName, Task<T,E> task) throws E {
-        return executeSubtaskImpl(taskName, "UNSPECIFIED", verbLvl, task, null, false);
+
+    public <T> T executeSubtask(String taskName, Task<T> task) {
+        return executeSubtaskImpl(taskName, "UNSPECIFIED", verbLvl, task);
     }
     
-    public <T, E extends Exception> 
-    T executeSubtask(String taskName, String taskDesc, Task<T,E> task) throws E {
-        return executeSubtaskImpl(taskName, taskDesc, verbLvl, task, null, false);
+    public <T> T executeSubtask(Enum<?> taskDesc, Task<T> task) {
+        // TODO implement
+        return null;
     }
     
-    public <T, E extends Exception> 
-    T executeSubtask(String taskName, Level verbLvl, Task<T,E> task) throws E {
-        return executeSubtaskImpl(taskName, "UNSPECIFIED", verbLvl, task, null, false);
+    private <T> T executeSubtaskImpl(String  taskName,
+                                     String  taskDesc,
+                                     Level   verbLvl,
+                                     Task<T> task) {
+        
+        TaskMonitor submonitor = startSubmonitor(taskName, taskDesc, verbLvl);
+        T t = task.execute(submonitor);
+        stopSubmonitor(submonitor);
+        return t;
     }
     
-    public <T, E extends Exception> 
-    T executeSubtask(String taskName, String taskDesc, Level verbLvl, Task<T,E> task) throws E {
-        return executeSubtaskImpl(taskName, taskDesc, verbLvl, task, null, false);
+    public <T, E extends Exception> T executeSubtaskExcep(String         taskName, 
+                                                          TaskExcep<T,E> task) throws E {
+        
+        return executeSubtaskImpl(taskName, "UNSPECIFIED", verbLvl, task);
     }
     
-    public <T> 
-    T executeSafeSubtask(String taskName, SafeTask<T> task) {
-        return executeSubtaskImpl(taskName, "UNSPECIFIED", verbLvl, null, task, true);
+    private <T, E extends Exception> T executeSubtaskImpl(String         taskName,
+                                                          String         taskDesc,
+                                                          Level          verbLvl,
+                                                          TaskExcep<T,E> task) throws E {
+
+        TaskMonitor submonitor = startSubmonitor(taskName, taskDesc, verbLvl);
+        T t = task.execute(submonitor);
+        stopSubmonitor(submonitor);
+        return t;
+    }
+
+    public void executeSubtask(String taskName, SideEffectTask task) {
+        executeSubtaskImpl(taskName, "UNSPECIFIED", verbLvl, task);
     }
     
-    public <T> 
-    T executeSafeSubtask(String taskName, String taskDesc, SafeTask<T> task) {
-        return executeSubtaskImpl(taskName, taskDesc, verbLvl, null, task, true);
+    private void executeSubtaskImpl(String         taskName,
+                                    String         taskDesc,
+                                    Level          verbLvl,
+                                    SideEffectTask task) {
+
+        TaskMonitor submonitor = startSubmonitor(taskName, taskDesc, verbLvl);
+        task.execute(submonitor);
+        stopSubmonitor(submonitor);
     }
     
-    public <T> 
-    T executeSafeSubtask(String taskName, Level verbLvl, SafeTask<T> task) {
-        return executeSubtaskImpl(taskName, "UNSPECIFIED", verbLvl, null, task, true);
+    public <E extends Exception> void executeSubtaskExcep(String                 taskName, 
+                                                          SideEffectTaskExcep<E> task) throws E {
+        executeSubtaskImpl(taskName, "UNSPECIFIED", verbLvl, task);
     }
     
-    public <T> 
-    T executeSafeSubtask(String taskName, String taskDesc, Level verbLvl, SafeTask<T> task) {
-        return executeSubtaskImpl(taskName, taskDesc, verbLvl, null, task, true);
+    private <E extends Exception> void executeSubtaskImpl(String                 taskName,
+                                                          String                 taskDesc,
+                                                          Level                  verbLvl,
+                                                          SideEffectTaskExcep<E> task) throws E{
+
+        TaskMonitor submonitor = startSubmonitor(taskName, taskDesc, verbLvl);
+        task.execute(submonitor);
+        stopSubmonitor(submonitor);
     }
     
-    private <T, E extends Exception> T executeSubtaskImpl(String      taskName,
-                                                          String      taskDesc,
-                                                          Level       verbLvl,
-                                                          Task<T,E>   task,
-                                                          SafeTask<T> safeTask,
-                                                          boolean     isSafe) throws E {
+    public <T> void executeSubtask(String taskName, T arg, SideEffetMonoArgTask<T> task) {
+        executeSubtaskImpl(taskName, "UNSPECIFIED", verbLvl, task, arg);
+    }
+    
+    private <T> void executeSubtaskImpl(String                  taskName,
+                                        String                  taskDesc,
+                                        Level                   verbLvl,
+                                        SideEffetMonoArgTask<T> task,
+                                        T                       arg) {
+
+        TaskMonitor submonitor = startSubmonitor(taskName, taskDesc, verbLvl);
+        task.execute(submonitor, arg);
+        stopSubmonitor(submonitor);
+    }
+    
+    public <T, E extends Exception> void executeSubtaskExcep(String                        taskName, 
+                                                             T                             arg, 
+                                                             SideEffetMonoArgTaskExcep<T,E>task) 
+                                                                                          throws E {
+        executeSubtaskImpl(taskName, "UNSPECIFIED", verbLvl, task, arg);
+    }
+    
+    private <T, E extends Exception> void executeSubtaskImpl(String                        taskName,
+                                                             String                        taskDesc,
+                                                             Level                         verbLvl,
+                                                             SideEffetMonoArgTaskExcep<T,E>task,
+                                                             T                             arg) 
+                                                                                           throws E{
+
+        TaskMonitor submonitor = startSubmonitor(taskName, taskDesc, verbLvl);
+        task.execute(submonitor, arg);
+        stopSubmonitor(submonitor);
+    }
+    
+    private TaskMonitor startSubmonitor(String taskName, String taskDesc, Level verbLvl) {
         // Create subtask monitor
         TaskMonitor submonitor = new TaskMonitor(taskName, taskDesc, verbLvl, Optional.of(this));
-        
-        // Start timer
-        submonitor.time.start();
-        
-        // Execute task
-        T t = isSafe ? safeTask.executeSafe(submonitor) : task.execute(submonitor);
-        
-        // Stop timer
-        submonitor.time.stop();
         
         // Save monitored subtasks
         subtasks.add(submonitor);
         
-        return t;
+        // Start timer
+        submonitor.time.start();
+        Log.log(verbLvl, 3, "%s Start", submonitor.getHierarchicalName());
+        
+        return submonitor;
     }
- 
+    
+    private void stopSubmonitor(TaskMonitor submonitor) {
+     // Stop timer
+        submonitor.time.stop();
+    }
+    
     
     //
     //  ~  LOG  ~  //
@@ -167,15 +245,10 @@ public final class TaskMonitor {
     }
     
     private void logImpl(Optional<Level> verbose, int stackTraceMod, String format, Object...args) {
-        // Create full message
-        String msg = new StringBuilder().append(getHierarchicalName())
-                                        .append(' ')
-                                        .append(String.format(format, args)).toString();
-        // Get message verbose level
-        Level lvl = verbose.isPresent() ? verbose.get() : verbLvl;
-        
-        // Create log observation
-        obs.add(new Observation(msg, lvl, stackTraceMod + 1));
+        String name = getHierarchicalName();
+        String msg  = String.format(format, args);
+        Level lvl   = verbose.isPresent() ? verbose.get() : verbLvl;
+        obs.add(new Observation(name, msg, lvl, stackTraceMod + 1));
     }
     
     
@@ -187,19 +260,21 @@ public final class TaskMonitor {
         signalImpl(anomaly, 1, args);
     }
 
-    public <T extends Exception> void signalException(Enum<?>   anomaly, 
+    public <T extends Exception, U> U signalException(Enum<?>   anomaly, 
                                                       Class<T>  excepClass, 
                                                       Object... args) throws T {
 
         signalExceptionImpl(anomaly, excepClass, Optional.empty(), args);
+        return null;
     }
     
-    public <T extends Exception> void signalException(Enum<?>   anomaly,
+    public <T extends Exception, U> U signalException(Enum<?>   anomaly,
                                                       Class<T>  excepClass,
                                                       Throwable cause,
                                                       Object... args) throws T {
 
         signalExceptionImpl(anomaly, excepClass, Optional.of(cause), args);
+        return null;
     }
     
     public <T extends Exception> void signalExceptionImpl(Enum<?>             anomaly,
@@ -226,13 +301,21 @@ public final class TaskMonitor {
     }
     
     private String signalImpl(Enum<?> anomaly, int stackTraceMod, Object...args) {
-        // Create anomaly
-        Anomaly ano = Anomaly.of(anomaly, stackTraceMod + 1, args);
+        Anomaly ano = Anomaly.of(anomaly, getHierarchicalName(), stackTraceMod + 1, args);
         obs.add(ano);
         return ano.getMessage();
     }
     
-
+    
+    //
+    //  ~  SETTERS  ~  //
+    //
+    
+    public void setDefaultVerbose(Level verbLvl) {
+        this.verbLvl = verbLvl;
+    }
+    
+    
     //
     //  ~  GETTERS  ~  //
     //
@@ -248,7 +331,7 @@ public final class TaskMonitor {
         sb.append(task.taskName);
         LinkedList<TaskMonitor> subs = task.subtasks;
         while (!subs.isEmpty()) {
-            sb.append(subs.getLast().taskName).append(" | ");
+            sb.append('|').append(subs.getLast().taskName);
             subs = subs.getLast().subtasks;
         }
         return sb.append(']').toString();

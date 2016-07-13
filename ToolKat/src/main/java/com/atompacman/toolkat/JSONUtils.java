@@ -4,9 +4,12 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 
+import org.apache.commons.io.FileUtils;
+
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JavaType;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public final class JSONUtils {
@@ -33,14 +36,23 @@ public final class JSONUtils {
 
     public static <T> T parse(File jsonFile, Class<T> objClass) throws JsonProcessingException, 
                                                                        IOException {
-        return MAPPER.readerFor(objClass).readValue(jsonFile);
+        
+        return parse(FileUtils.readFileToString(jsonFile), objClass);
     }
     
     public static <T> T parse(String json, Class<T> objClass) throws JsonParseException, 
                                                                      IOException {
         return MAPPER.readerFor(objClass).readValue(json);
     }
- 
+    
+    public static <T extends Collection<E>,E> T parseCollection(File jsonFile,
+                                                                Class<T> collClass,
+                                                                Class<E> elemClass)
+                                                       throws JsonParseException, IOException {
+    
+        return parseCollection(FileUtils.readFileToString(jsonFile), collClass, elemClass);
+    }
+    
     public static <T extends Collection<E>,E> T parseCollection(String   json,
                                                                 Class<T> collClass,
                                                                 Class<E> elemClass)
@@ -50,7 +62,15 @@ public final class JSONUtils {
         return MAPPER.readerFor(type).readValue(json);
     }
     
-
+    public static JsonNode parseTree(File jsonFile) throws JsonProcessingException, IOException {
+        return parseTree(FileUtils.readFileToString(jsonFile));
+    }
+    
+    public static JsonNode parseTree(String json) throws JsonProcessingException, IOException {
+        return new ObjectMapper().readTree(json);
+    }
+    
+    
     //
     //  ~  SERIALIZE  ~  //
     //

@@ -54,9 +54,8 @@ public final class ReportViewer extends CenteredJFrame {
         Container mainPane = getContentPane();
         mainPane.setLayout(new BoxLayout(mainPane, BoxLayout.Y_AXIS));
         mainPane.add(treePanel);
-        //mainPane.add(detailsPanel);
         
-        setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         GUIUtils.setSystemLookAndFeel();
     }
 

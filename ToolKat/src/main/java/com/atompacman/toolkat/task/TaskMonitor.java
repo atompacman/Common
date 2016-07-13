@@ -26,7 +26,12 @@ public final class TaskMonitor {
     public interface TaskExcep<T, E extends Exception> {
         T execute(TaskMonitor monitor) throws E;
     }
-
+    
+    @FunctionalInterface
+    public interface MonoArgTask<A,R> {
+        R execute(TaskMonitor monitor, A arg);
+    }
+    
     @FunctionalInterface
     public interface SideEffectTask {
         void execute(TaskMonitor monitor);
@@ -141,6 +146,22 @@ public final class TaskMonitor {
         return t;
     }
 
+    public <A,R> R executeSubtask(String taskName, A arg, MonoArgTask<A,R> task) {
+        return executeSubtaskImpl(taskName, "UNSPECIFIED", verbLvl, task, arg);
+    }
+    
+    private <A,R> R executeSubtaskImpl(String           taskName,
+                                       String           taskDesc,
+                                       Level            verbLvl,
+                                       MonoArgTask<A,R> task,
+                                       A                arg) {
+
+        TaskMonitor submonitor = startSubmonitor(taskName, taskDesc, verbLvl);
+        R r = task.execute(submonitor, arg);
+        stopSubmonitor(submonitor);
+        return r;
+    }
+    
     public void executeSubtask(String taskName, SideEffectTask task) {
         executeSubtaskImpl(taskName, "UNSPECIFIED", verbLvl, task);
     }

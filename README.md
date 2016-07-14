@@ -1,2 +1,2 @@
-# AtomLibs
-AtomLog, Configuana, Klusterz, NRStep, Toolkat
+# Common
+Common java utilities
